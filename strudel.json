@@ -1,0 +1,7 @@
+{
+  "_base": "https://raw.githubusercontent.com/emin-grbo/app-maker--outpost/main/",
+  "steveQuotes": [
+    "steveQuotes/quote-1.mp3",
+    "steveQuotes/quote-2.mp3"
+  ]
+}
