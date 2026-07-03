@@ -182,6 +182,7 @@
       code = code.replace(/\._scope\(\)\s*$/, '');
       log(`Code loaded (${code.length} chars). First 80: ${code.substring(0, 80)}...`);
       log(`Code ends with: ...${code.slice(-40)}`);
+      code += '\n.play()';
       log('Calling evaluate()...');
       try {
         const result = await evaluate(code);
