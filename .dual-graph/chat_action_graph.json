@@ -17,6 +17,17 @@
       "meta": {
         "text": ""
       }
+    },
+    {
+      "id": "action:edit:1783109336",
+      "type": "action",
+      "meta": {
+        "summary": "Switched to @strudel/repl hidden editor; @strudel/web lacks soundfonts for gm_* sounds"
+      }
+    },
+    {
+      "id": "index.html",
+      "type": "file"
     }
   ],
   "edges": [
@@ -34,6 +45,12 @@
       "meta": {
         "mode": "full"
       }
+    },
+    {
+      "from": "action:edit:1783109336",
+      "to": "index.html",
+      "rel": "edited",
+      "ts": 1783109336
     }
   ],
   "files": {
@@ -44,6 +61,11 @@
       "cached_tokens_est": 42,
       "last_action": "read",
       "last_ts": 1783091152
+    },
+    "index.html": {
+      "last_action": "edited",
+      "last_ts": "2026-07-03T20:08:56.706742+00:00",
+      "edited_count": 1
     }
   },
   "actions": [
@@ -54,6 +76,23 @@
         "kind": "retrieve",
         "query": "strudle project structure, what kind of app is this, deployment options"
       }
+    },
+    {
+      "ts": 1783109336,
+      "kind": "register_edit",
+      "payload": {
+        "kind": "register_edit"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "ts": 1783109336,
+      "summary": "Switched to @strudel/repl hidden editor; @strudel/web lacks soundfonts for gm_* sounds",
+      "files": [
+        "index.html"
+      ],
+      "scope": "file"
     }
   ]
 }

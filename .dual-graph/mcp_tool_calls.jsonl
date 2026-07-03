@@ -1,2 +1,3 @@
 {"timestamp": "2026-07-03T15:05:49.861568+00:00", "tool": "graph_retrieve", "payload": {"query": "strudle project structure, what kind of app is this, deployment options", "top_files": 5, "top_edges": 12}}
 {"timestamp": "2026-07-03T15:05:52.767630+00:00", "tool": "graph_read", "payload": {"file": "strudel.json", "requested_chars": 20000, "granted_chars": 20000, "query": "", "anchor": "", "mode": "full", "response_chars": 171, "response_tokens_est": 42, "budget_used_chars": 171, "budget_remaining_chars": 59829}}
+{"timestamp": "2026-07-03T20:08:56.708832+00:00", "tool": "graph_register_edit", "payload": {"files": ["index.html"], "summary": "Switched to @strudel/repl hidden editor; @strudel/web lacks soundfonts for gm_* sounds"}}

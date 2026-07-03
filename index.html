@@ -72,6 +72,17 @@
     .status.active {
       color: #6cf;
     }
+    /* Hidden strudel editor - handles all audio, never visible */
+    #strudel-host {
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
     #debug {
       position: fixed;
       bottom: 0;
@@ -120,9 +131,10 @@
     <p class="status" id="status">click to listen</p>
   </div>
 
+  <div id="strudel-host"></div>
   <div id="debug"></div>
 
-  <script src="https://unpkg.com/@strudel/web@latest"></script>
+  <script src="https://unpkg.com/@strudel/repl@latest"></script>
   <script>
     // Debug logger
     const debugEl = document.getElementById('debug');
@@ -139,6 +151,7 @@
     window.addEventListener('unhandledrejection', (e) => log(`UNHANDLED PROMISE: ${e.reason}`, 'err'));
 
     let isPlaying = false;
+    let repl = null;
     const btn = document.getElementById('play-btn');
     const icon = document.getElementById('play-icon');
     const status = document.getElementById('status');
@@ -147,57 +160,42 @@
     const playPath = '<polygon points="6,4 20,12 6,20"/>';
     const pausePath = '<rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/>';
 
-    let strudelReady = false;
-
-    async function initPlayer() {
-      if (!strudelReady) {
-        log('Initializing Strudel...');
-        status.textContent = 'loading...';
-        try {
-          await initStrudel({
-            prebake: () => {
-              log('Prebake: loading samples from github:emin-grbo/app-maker--outpost');
-              return samples('github:emin-grbo/app-maker--outpost');
-            },
-          });
-          strudelReady = true;
-          log('Strudel initialized OK');
-        } catch(e) {
-          log(`initStrudel FAILED: ${e.message}`, 'err');
-          throw e;
-        }
-      }
-    }
-
-    async function loadAndPlay() {
+    async function setupRepl() {
+      if (repl) return;
       log('Fetching bunkerfog.strudel...');
       const response = await fetch('bunkerfog.strudel');
       if (!response.ok) {
         log(`Fetch failed: ${response.status} ${response.statusText}`, 'err');
         throw new Error(`Fetch failed: ${response.status}`);
       }
-      let code = await response.text();
-      // Strip trailing block comments and ._scope(), not needed outside REPL
-      code = code.replace(/\/\*[\s\S]*?\*\/\s*$/g, '').trimEnd();
-      code = code.replace(/\._scope\(\)\s*$/, '');
-      log(`Code loaded (${code.length} chars). First 80: ${code.substring(0, 80)}...`);
-      log(`Code ends with: ...${code.slice(-40)}`);
-      code += '\n.play()';
-      log('Calling evaluate()...');
-      try {
-        const result = await evaluate(code);
-        log(`evaluate() returned successfully`);
-      } catch(e) {
-        log(`evaluate() FAILED: ${e.message}`, 'err');
-        throw e;
-      }
+      const code = await response.text();
+      log(`Code loaded (${code.length} chars)`);
+
+      log('Creating hidden strudel-editor...');
+      repl = document.createElement('strudel-editor');
+      repl.setAttribute('code', code);
+      document.getElementById('strudel-host').append(repl);
+
+      // Wait for the editor instance to be ready
+      await new Promise((resolve, reject) => {
+        let tries = 0;
+        const check = () => {
+          if (repl.editor) return resolve();
+          if (++tries > 100) return reject(new Error('strudel editor never initialized'));
+          setTimeout(check, 100);
+        };
+        check();
+      });
+      log('Strudel REPL ready');
     }
 
     btn.addEventListener('click', async () => {
       if (!isPlaying) {
         try {
-          await initPlayer();
-          await loadAndPlay();
+          status.textContent = 'loading...';
+          await setupRepl();
+          log('Starting playback (editor.evaluate)...');
+          await repl.editor.evaluate();
           isPlaying = true;
           btn.classList.add('playing');
           icon.innerHTML = pausePath;
@@ -206,11 +204,11 @@
           glow.classList.add('active');
           log('Playback started');
         } catch (e) {
-          log(`Play error: ${e.message}\n${e.stack}`, 'err');
+          log(`Play error: ${e.message}`, 'err');
           status.textContent = 'error - see debug below';
         }
       } else {
-        hush();
+        repl.editor.stop();
         isPlaying = false;
         btn.classList.remove('playing');
         icon.innerHTML = playPath;
