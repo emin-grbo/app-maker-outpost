@@ -185,7 +185,7 @@
       log('Calling evaluate()...');
       try {
         const result = await evaluate(code);
-        log(`evaluate() returned: ${JSON.stringify(result)?.substring(0, 200)}`);
+        log(`evaluate() returned successfully`);
       } catch(e) {
         log(`evaluate() FAILED: ${e.message}`, 'err');
         throw e;
