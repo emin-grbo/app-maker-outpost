@@ -12,7 +12,7 @@ This project uses a local dual-graph MCP server for efficient context retrieval.
 
 3. **If `graph_continue` returns `skip=true`**: project has fewer than 5 files.
    Do NOT do broad or recursive exploration. Read only specific files if their names
-   are mentioned, or ask the user what to work on.
+   are mentioned, or ask the user what to work on. 
 
 4. **Read `recommended_files`** using `graph_read` — **one call per file**.
    - `graph_read` accepts a single `file` parameter (string). Call it separately for each
