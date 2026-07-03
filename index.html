@@ -72,6 +72,27 @@
     .status.active {
       color: #6cf;
     }
+    #debug {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: 30vh;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.9);
+      border-top: 1px solid #333;
+      padding: 0.5rem;
+      font-size: 0.65rem;
+      color: #999;
+      font-family: monospace;
+      display: none;
+    }
+    #debug.visible {
+      display: block;
+    }
+    #debug .err { color: #f66; }
+    #debug .warn { color: #fc6; }
+    #debug .info { color: #6cf; }
     /* background ambient effect */
     .bg-glow {
       position: fixed;
@@ -103,15 +124,32 @@
     <p class="status" id="status">click to listen</p>
   </div>
 
+  <div id="debug"></div>
+
   <script src="https://unpkg.com/@strudel/web@latest"></script>
   <script>
+    // Debug logger
+    const debugEl = document.getElementById('debug');
+    debugEl.classList.add('visible');
+    function log(msg, level = 'info') {
+      const line = document.createElement('div');
+      line.className = level;
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      debugEl.appendChild(line);
+      debugEl.scrollTop = debugEl.scrollHeight;
+      console[level === 'err' ? 'error' : level === 'warn' ? 'warn' : 'log'](msg);
+    }
+
+    // Capture uncaught errors
+    window.addEventListener('error', (e) => log(`UNCAUGHT: ${e.message} (${e.filename}:${e.lineno})`, 'err'));
+    window.addEventListener('unhandledrejection', (e) => log(`UNHANDLED PROMISE: ${e.reason}`, 'err'));
+
     let isPlaying = false;
     const btn = document.getElementById('play-btn');
     const icon = document.getElementById('play-icon');
     const status = document.getElementById('status');
     const glow = document.getElementById('bg-glow');
 
-    // Pause icon SVG
     const playPath = '<polygon points="6,4 20,12 6,20"/>';
     const pausePath = '<rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/>';
 
@@ -119,18 +157,41 @@
 
     async function initPlayer() {
       if (!strudelReady) {
+        log('Initializing Strudel...');
         status.textContent = 'loading...';
-        await initStrudel({
-          prebake: () => samples('github:emin-grbo/app-maker--outpost'),
-        });
-        strudelReady = true;
+        try {
+          await initStrudel({
+            prebake: () => {
+              log('Prebake: loading samples from github:emin-grbo/app-maker--outpost');
+              return samples('github:emin-grbo/app-maker--outpost');
+            },
+          });
+          strudelReady = true;
+          log('Strudel initialized OK');
+        } catch(e) {
+          log(`initStrudel FAILED: ${e.message}`, 'err');
+          throw e;
+        }
       }
     }
 
     async function loadAndPlay() {
+      log('Fetching bunkerfog.strudel...');
       const response = await fetch('bunkerfog.strudel');
+      if (!response.ok) {
+        log(`Fetch failed: ${response.status} ${response.statusText}`, 'err');
+        throw new Error(`Fetch failed: ${response.status}`);
+      }
       const code = await response.text();
-      await evaluate(code);
+      log(`Code loaded (${code.length} chars). First 80: ${code.substring(0, 80)}...`);
+      log('Calling evaluate()...');
+      try {
+        const result = await evaluate(code);
+        log(`evaluate() returned: ${JSON.stringify(result)?.substring(0, 200)}`);
+      } catch(e) {
+        log(`evaluate() FAILED: ${e.message}`, 'err');
+        throw e;
+      }
     }
 
     btn.addEventListener('click', async () => {
@@ -144,9 +205,10 @@
           status.textContent = 'playing';
           status.classList.add('active');
           glow.classList.add('active');
+          log('Playback started');
         } catch (e) {
-          console.error(e);
-          status.textContent = 'error - check console';
+          log(`Play error: ${e.message}\n${e.stack}`, 'err');
+          status.textContent = 'error - see debug below';
         }
       } else {
         hush();
@@ -156,6 +218,7 @@
         status.textContent = 'click to listen';
         status.classList.remove('active');
         glow.classList.remove('active');
+        log('Stopped');
       }
     });
   </script>
