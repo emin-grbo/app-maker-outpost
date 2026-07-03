@@ -2,3 +2,4 @@
 {"timestamp": "2026-07-03T15:05:52.767630+00:00", "tool": "graph_read", "payload": {"file": "strudel.json", "requested_chars": 20000, "granted_chars": 20000, "query": "", "anchor": "", "mode": "full", "response_chars": 171, "response_tokens_est": 42, "budget_used_chars": 171, "budget_remaining_chars": 59829}}
 {"timestamp": "2026-07-03T20:08:56.708832+00:00", "tool": "graph_register_edit", "payload": {"files": ["index.html"], "summary": "Switched to @strudel/repl hidden editor; @strudel/web lacks soundfonts for gm_* sounds"}}
 {"timestamp": "2026-07-03T20:52:22.481262+00:00", "tool": "graph_register_edit", "payload": {"files": ["index.html"], "summary": "Added cache-busting fetch + Safari AudioContext resume inside user gesture"}}
+{"timestamp": "2026-07-03T21:07:28.063260+00:00", "tool": "graph_register_edit", "payload": {"files": ["index.html"], "summary": "AudioContext constructor interception + resume passes for Safari suspended contexts"}}

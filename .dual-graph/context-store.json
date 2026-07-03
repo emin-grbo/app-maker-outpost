@@ -77,7 +77,7 @@
     "symbol_hash": "",
     "created_at": "2026-07-03T20:08:56.708231+00:00",
     "created_epoch": 1783109336,
-    "updated_at": "2026-07-03T20:52:22.480398+00:00",
+    "updated_at": "2026-07-03T21:07:28.062395+00:00",
     "stale": false,
     "stale_reason": "",
     "observed_queries": [],
@@ -111,6 +111,38 @@
     "created_at": "2026-07-03T20:52:22.479690+00:00",
     "created_epoch": 1783111942,
     "updated_at": "2026-07-03T20:52:22.479693+00:00",
+    "stale": false,
+    "stale_reason": "",
+    "observed_queries": [],
+    "evidence": {
+      "window_sec": 120,
+      "recent_action_kinds": [],
+      "recent_queries": []
+    }
+  },
+  {
+    "id": "mem:1783112848061",
+    "kind": "decision",
+    "content": "AudioContext constructor interception + resume passes for Safari suspended contexts",
+    "tags": [
+      "audiocontext",
+      "constructor",
+      "interception",
+      "resume",
+      "passes",
+      "safari",
+      "suspended",
+      "contexts"
+    ],
+    "files": [
+      "index.html"
+    ],
+    "file_path": "index.html",
+    "symbol_id": "",
+    "symbol_hash": "",
+    "created_at": "2026-07-03T21:07:28.061497+00:00",
+    "created_epoch": 1783112848,
+    "updated_at": "2026-07-03T21:07:28.061499+00:00",
     "stale": false,
     "stale_reason": "",
     "observed_queries": [],

@@ -35,6 +35,13 @@
       "meta": {
         "summary": "Added cache-busting fetch + Safari AudioContext resume inside user gesture"
       }
+    },
+    {
+      "id": "action:edit:1783112848",
+      "type": "action",
+      "meta": {
+        "summary": "AudioContext constructor interception + resume passes for Safari suspended contexts"
+      }
     }
   ],
   "edges": [
@@ -64,6 +71,12 @@
       "to": "index.html",
       "rel": "edited",
       "ts": 1783111942
+    },
+    {
+      "from": "action:edit:1783112848",
+      "to": "index.html",
+      "rel": "edited",
+      "ts": 1783112848
     }
   ],
   "files": {
@@ -77,8 +90,8 @@
     },
     "index.html": {
       "last_action": "edited",
-      "last_ts": "2026-07-03T20:52:22.479529+00:00",
-      "edited_count": 2
+      "last_ts": "2026-07-03T21:07:28.061381+00:00",
+      "edited_count": 3
     }
   },
   "actions": [
@@ -103,6 +116,13 @@
       "payload": {
         "kind": "register_edit"
       }
+    },
+    {
+      "ts": 1783112848,
+      "kind": "register_edit",
+      "payload": {
+        "kind": "register_edit"
+      }
     }
   ],
   "decisions": [
@@ -117,6 +137,14 @@
     {
       "ts": 1783111942,
       "summary": "Added cache-busting fetch + Safari AudioContext resume inside user gesture",
+      "files": [
+        "index.html"
+      ],
+      "scope": "file"
+    },
+    {
+      "ts": 1783112848,
+      "summary": "AudioContext constructor interception + resume passes for Safari suspended contexts",
       "files": [
         "index.html"
       ],
