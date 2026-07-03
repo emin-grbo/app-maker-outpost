@@ -28,6 +28,13 @@
     {
       "id": "index.html",
       "type": "file"
+    },
+    {
+      "id": "action:edit:1783111942",
+      "type": "action",
+      "meta": {
+        "summary": "Added cache-busting fetch + Safari AudioContext resume inside user gesture"
+      }
     }
   ],
   "edges": [
@@ -51,6 +58,12 @@
       "to": "index.html",
       "rel": "edited",
       "ts": 1783109336
+    },
+    {
+      "from": "action:edit:1783111942",
+      "to": "index.html",
+      "rel": "edited",
+      "ts": 1783111942
     }
   ],
   "files": {
@@ -64,8 +77,8 @@
     },
     "index.html": {
       "last_action": "edited",
-      "last_ts": "2026-07-03T20:08:56.706742+00:00",
-      "edited_count": 1
+      "last_ts": "2026-07-03T20:52:22.479529+00:00",
+      "edited_count": 2
     }
   },
   "actions": [
@@ -83,12 +96,27 @@
       "payload": {
         "kind": "register_edit"
       }
+    },
+    {
+      "ts": 1783111942,
+      "kind": "register_edit",
+      "payload": {
+        "kind": "register_edit"
+      }
     }
   ],
   "decisions": [
     {
       "ts": 1783109336,
       "summary": "Switched to @strudel/repl hidden editor; @strudel/web lacks soundfonts for gm_* sounds",
+      "files": [
+        "index.html"
+      ],
+      "scope": "file"
+    },
+    {
+      "ts": 1783111942,
+      "summary": "Added cache-busting fetch + Safari AudioContext resume inside user gesture",
       "files": [
         "index.html"
       ],

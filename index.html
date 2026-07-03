@@ -163,7 +163,7 @@
     async function setupRepl() {
       if (repl) return;
       log('Fetching bunkerfog.strudel...');
-      const response = await fetch('bunkerfog.strudel');
+      const response = await fetch(`bunkerfog.strudel?v=${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) {
         log(`Fetch failed: ${response.status} ${response.statusText}`, 'err');
         throw new Error(`Fetch failed: ${response.status}`);
@@ -194,6 +194,21 @@
         try {
           status.textContent = 'loading...';
           await setupRepl();
+          // Safari: AudioContext can stay suspended — resume explicitly inside user gesture
+          try {
+            const ctx = repl.editor?.repl?.scheduler?.getAudioContext?.()
+              || window.getAudioContext?.();
+            if (ctx && ctx.state === 'suspended') {
+              await ctx.resume();
+              log(`AudioContext resumed (state: ${ctx.state})`);
+            } else if (ctx) {
+              log(`AudioContext state: ${ctx.state}`);
+            } else {
+              log('Could not locate AudioContext for resume check', 'warn');
+            }
+          } catch (e) {
+            log(`AudioContext resume failed: ${e.message}`, 'warn');
+          }
           log('Starting playback (editor.evaluate)...');
           await repl.editor.evaluate();
           isPlaying = true;
