@@ -182,8 +182,17 @@
         log(`Fetch failed: ${response.status} ${response.statusText}`, 'err');
         throw new Error(`Fetch failed: ${response.status}`);
       }
-      const code = await response.text();
+      let code = await response.text();
+      // Strip trailing whitespace/comments, append .play() if not present
+      code = code.replace(/\/\*[\s\S]*?\*\/\s*$/, '').trimEnd();
+      if (!code.endsWith('.play()')) {
+        code = code.replace(/\._scope\(\)\s*$/, '._scope().play()');
+        if (!code.endsWith('.play()')) {
+          code += '\n.play()';
+        }
+      }
       log(`Code loaded (${code.length} chars). First 80: ${code.substring(0, 80)}...`);
+      log(`Code ends with: ...${code.slice(-30)}`);
       log('Calling evaluate()...');
       try {
         const result = await evaluate(code);
