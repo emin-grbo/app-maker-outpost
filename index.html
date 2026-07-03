@@ -72,33 +72,6 @@
     .status.active {
       color: #6cf;
     }
-    /* Hide the strudel editor completely */
-    strudel-editor {
-      position: fixed;
-      top: -9999px;
-      left: -9999px;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      opacity: 0;
-      pointer-events: none;
-    }
-    /* background ambient effect */
-    .bg-glow {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 600px;
-      height: 600px;
-      transform: translate(-50%, -50%);
-      background: radial-gradient(circle, rgba(102,204,255,0.03) 0%, transparent 70%);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 2s ease;
-    }
-    .bg-glow.active {
-      opacity: 1;
-    }
     #debug {
       position: fixed;
       bottom: 0;
@@ -116,6 +89,22 @@
     #debug .err { color: #f66; }
     #debug .warn { color: #fc6; }
     #debug .info { color: #6cf; }
+    /* background ambient effect */
+    .bg-glow {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 600px;
+      height: 600px;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(102,204,255,0.03) 0%, transparent 70%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 2s ease;
+    }
+    .bg-glow.active {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -131,75 +120,11 @@
     <p class="status" id="status">click to listen</p>
   </div>
 
-  <!-- Hidden strudel-editor handles audio scheduling properly -->
-  <script src="https://unpkg.com/@strudel/repl@latest"></script>
-  <strudel-editor id="strudel">
-    <!--
-// "bunker fog" v2
-samples('github:emin-grbo/app-maker--outpost')
-samples('github:eddyflux/crate')
-
-setcps(.5)
-
-let pads = chord("<Fmaj9 Cmaj7 Am9 Em11>/4").dict('ireal')
-stack(
-    
-note("[D3, A3, D4, F#4] [G3, B3, D4, G4] [Bm3, F#3, B3, D4] [A3, E4, A4, C#5]")
-  .room(2).size(.2)
-  .jux(rev)
-  .slow(8)
-  .sustain(5)
-  .sound("gm_choir_aahs")
-  .attack(.5)
-  .release(.8)
-  .lpf(sine.range(500, 1400))
-,
-
-note("<C5 E5 G5 B5 D6>*8?")
-  .s("gm_glockenspiel")
-  .slow(10)
-  .gain(5)
-  .pan(rand.range(-0.6, 0.6))
-  .attack(0.1)
-  .decay(0.3)
-  .release(rand.range(0.4, 1.2))
-  .room(0.8)
-  .size(3)
-  .delay(0.25)
-  .delaytime("3/8")
-  .delayfeedback(0.25)
-  .lpf(rand.range(1200, 3500))
-  ,
-  
-  stack(
-    s("gm_seashore")
-      .loopAt(8)
-      .gain(.7)
-      .lpf(1500).hpf(400)
-    ,
-    s("gm_breath_noise")
-      .loopAt(4)
-      .gain(.5)
-      .lpf(1200).hpf(600)
-      .pan(sine.range(.3, .7).slow(6))
-      .degradeBy(.3)
-    ,
-    s("gm_helicopter")
-      .mask("<1 0 0 0 1 0 0 0>/4")
-      .degradeBy(.3)
-      .speed(.5)
-      .lpf(800)
-      .gain(.5)
-      .room(.3).size(2)
-    )
-)
-.late("[0 .005]*2")
-    -->
-  </strudel-editor>
-
   <div id="debug"></div>
 
+  <script src="https://unpkg.com/@strudel/web@latest"></script>
   <script>
+    // Debug logger
     const debugEl = document.getElementById('debug');
     function log(msg, level = 'info') {
       const line = document.createElement('div');
@@ -207,61 +132,84 @@ note("<C5 E5 G5 B5 D6>*8?")
       line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
       debugEl.appendChild(line);
       debugEl.scrollTop = debugEl.scrollHeight;
+      console[level === 'err' ? 'error' : level === 'warn' ? 'warn' : 'log'](msg);
     }
 
-    window.addEventListener('error', (e) => log(`UNCAUGHT: ${e.message}`, 'err'));
-    window.addEventListener('unhandledrejection', (e) => log(`UNHANDLED: ${e.reason}`, 'err'));
+    window.addEventListener('error', (e) => log(`UNCAUGHT: ${e.message} (${e.filename}:${e.lineno})`, 'err'));
+    window.addEventListener('unhandledrejection', (e) => log(`UNHANDLED PROMISE: ${e.reason}`, 'err'));
 
     let isPlaying = false;
     const btn = document.getElementById('play-btn');
     const icon = document.getElementById('play-icon');
     const status = document.getElementById('status');
     const glow = document.getElementById('bg-glow');
-    const strudelEl = document.getElementById('strudel');
 
     const playPath = '<polygon points="6,4 20,12 6,20"/>';
     const pausePath = '<rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/>';
 
+    let strudelReady = false;
+
+    async function initPlayer() {
+      if (!strudelReady) {
+        log('Initializing Strudel...');
+        status.textContent = 'loading...';
+        try {
+          await initStrudel({
+            prebake: () => {
+              log('Prebake: loading samples from github:emin-grbo/app-maker--outpost');
+              return samples('github:emin-grbo/app-maker--outpost');
+            },
+          });
+          strudelReady = true;
+          log('Strudel initialized OK');
+        } catch(e) {
+          log(`initStrudel FAILED: ${e.message}`, 'err');
+          throw e;
+        }
+      }
+    }
+
+    async function loadAndPlay() {
+      log('Fetching bunkerfog.strudel...');
+      const response = await fetch('bunkerfog.strudel');
+      if (!response.ok) {
+        log(`Fetch failed: ${response.status} ${response.statusText}`, 'err');
+        throw new Error(`Fetch failed: ${response.status}`);
+      }
+      let code = await response.text();
+      // Strip trailing block comments and ._scope(), not needed outside REPL
+      code = code.replace(/\/\*[\s\S]*?\*\/\s*$/g, '').trimEnd();
+      code = code.replace(/\._scope\(\)\s*$/, '');
+      log(`Code loaded (${code.length} chars). First 80: ${code.substring(0, 80)}...`);
+      log(`Code ends with: ...${code.slice(-40)}`);
+      log('Calling evaluate()...');
+      try {
+        const result = await evaluate(code);
+        log(`evaluate() returned: ${JSON.stringify(result)?.substring(0, 200)}`);
+      } catch(e) {
+        log(`evaluate() FAILED: ${e.message}`, 'err');
+        throw e;
+      }
+    }
+
     btn.addEventListener('click', async () => {
       if (!isPlaying) {
-        log('Starting playback via strudel-editor...');
         try {
-          // strudel-editor exposes play/stop via its shadow DOM button or programmatic API
-          const playButton = strudelEl.shadowRoot?.querySelector('button[aria-label="play"]')
-            || strudelEl.shadowRoot?.querySelector('button')
-            || strudelEl.querySelector('button');
-          
-          if (playButton) {
-            playButton.click();
-            log('Clicked strudel internal play button');
-          } else {
-            // Fallback: try dispatching keyboard shortcut (Ctrl+Enter triggers eval in strudel)
-            log('No play button found in shadowRoot, trying alternate methods...', 'warn');
-            // List what's in shadow root for debugging
-            const sr = strudelEl.shadowRoot;
-            if (sr) {
-              log(`Shadow root children: ${sr.children.length}, innerHTML preview: ${sr.innerHTML.substring(0, 200)}`);
-            } else {
-              log('No shadow root found', 'warn');
-            }
-          }
-
+          await initPlayer();
+          await loadAndPlay();
           isPlaying = true;
           btn.classList.add('playing');
           icon.innerHTML = pausePath;
           status.textContent = 'playing';
           status.classList.add('active');
           glow.classList.add('active');
+          log('Playback started');
         } catch (e) {
-          log(`Error: ${e.message}`, 'err');
-          status.textContent = 'error - see debug';
+          log(`Play error: ${e.message}\n${e.stack}`, 'err');
+          status.textContent = 'error - see debug below';
         }
       } else {
-        // Stop
-        const stopButton = strudelEl.shadowRoot?.querySelector('button[aria-label="stop"]')
-          || strudelEl.shadowRoot?.querySelectorAll('button')?.[1];
-        if (stopButton) stopButton.click();
-        
+        hush();
         isPlaying = false;
         btn.classList.remove('playing');
         icon.innerHTML = playPath;
