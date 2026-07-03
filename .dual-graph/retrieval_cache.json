@@ -1,0 +1,55 @@
+{
+  "entries": {
+    "strudle project structure what kind app deployment options|tf=5|te=12": {
+      "created_epoch": 1783091149,
+      "files": [
+        "strudel.json"
+      ],
+      "mtimes_ns": {
+        "strudel.json": 1782965737858554220
+      },
+      "result": {
+        "ok": true,
+        "query": "strudle project structure, what kind of app is this, deployment options",
+        "graph_files": [
+          {
+            "id": "strudel.json",
+            "kind": "file",
+            "path": "strudel.json",
+            "ext": ".json",
+            "size": 171,
+            "keywords": [],
+            "summary": "\"_base\": \"https://raw.githubusercontent.com/emin-grbo/app-maker--outpost/main/\",.",
+            "file_hash": "5cec8d3c",
+            "_score": 4,
+            "_role": "code",
+            "_intent": "general"
+          }
+        ],
+        "graph_edges": [
+          {
+            "from": "AGENTS.md",
+            "to": "src/auth.ts",
+            "rel": "references"
+          },
+          {
+            "from": "AGENTS.md",
+            "to": "src/db.ts",
+            "rel": "references"
+          },
+          {
+            "from": "AGENTS.md",
+            "to": "relevant/file.ts",
+            "rel": "references"
+          }
+        ],
+        "grep_hits": [],
+        "reuse_candidates": [],
+        "read_budget": {
+          "remaining_chars": 60000,
+          "reuse_gate_candidates": []
+        }
+      }
+    }
+  }
+}

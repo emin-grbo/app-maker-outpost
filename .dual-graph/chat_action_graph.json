@@ -1,0 +1,59 @@
+{
+  "nodes": [
+    {
+      "id": "query:strudle project structure what kind app deployment options",
+      "type": "query",
+      "meta": {
+        "text": "strudle project structure, what kind of app is this, deployment options"
+      }
+    },
+    {
+      "id": "strudel.json",
+      "type": "file"
+    },
+    {
+      "id": "query:(empty)",
+      "type": "query",
+      "meta": {
+        "text": ""
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "query:strudle project structure what kind app deployment options",
+      "to": "strudel.json",
+      "rel": "retrieved",
+      "ts": 1783091149
+    },
+    {
+      "from": "query:(empty)",
+      "to": "strudel.json",
+      "rel": "read",
+      "ts": 1783091152,
+      "meta": {
+        "mode": "full"
+      }
+    }
+  ],
+  "files": {
+    "strudel.json": {
+      "query_terms": [],
+      "cached_content": "{\n  \"_base\": \"https://raw.githubusercontent.com/emin-grbo/app-maker--outpost/main/\",\n  \"steveQuotes\": [\n    \"steveQuotes/quote-1.mp3\",\n    \"steveQuotes/quote-2.mp3\"\n  ]\n}\n",
+      "cached_chars": 171,
+      "cached_tokens_est": 42,
+      "last_action": "read",
+      "last_ts": 1783091152
+    }
+  },
+  "actions": [
+    {
+      "ts": 1783091149,
+      "kind": "retrieve",
+      "payload": {
+        "kind": "retrieve",
+        "query": "strudle project structure, what kind of app is this, deployment options"
+      }
+    }
+  ]
+}
