@@ -140,7 +140,7 @@ note("<C5 E5 G5 B5 D6>*8?")
    .delay(.3).delaytime("1").delayfeedback(.2)
    .mask("<0 0 0 1>/4")
    .lpf(600)
-   ,
+   , 
  RADIO QUOTES - rare, plays full sample
  s("steveQuotes").n(irand(2))
    .struct("<0 0 0 1 0 0 0 0>/8")   // triggers once every ~16 seconds
