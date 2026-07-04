@@ -1,5 +1,18 @@
 [
   {
+    "type": "decision",
+    "content": "Added Safari background recovery: visibilitychange, statechange resume, Media Session API.",
+    "tags": [
+      "safari",
+      "audio",
+      "strudel"
+    ],
+    "files": [
+      "index.html"
+    ],
+    "date": "2026-07-04"
+  },
+  {
     "id": "mem:1783109337840",
     "kind": "fact",
     "content": "@strudel/web bundle lacks soundfonts; gm_* sounds need @strudel/repl",
@@ -20,38 +33,6 @@
     "stale_reason": "",
     "observed_queries": [],
     "evidence": {}
-  },
-  {
-    "id": "mem:1783109336706",
-    "kind": "decision",
-    "content": "Switched to @strudel/repl hidden editor; @strudel/web lacks soundfonts for gm_* sounds",
-    "tags": [
-      "switched",
-      "strudel",
-      "repl",
-      "hidden",
-      "editor",
-      "web",
-      "lacks",
-      "soundfonts"
-    ],
-    "files": [
-      "index.html"
-    ],
-    "file_path": "index.html",
-    "symbol_id": "",
-    "symbol_hash": "",
-    "created_at": "2026-07-03T20:08:56.706847+00:00",
-    "created_epoch": 1783109336,
-    "updated_at": "2026-07-03T20:08:56.706850+00:00",
-    "stale": false,
-    "stale_reason": "",
-    "observed_queries": [],
-    "evidence": {
-      "window_sec": 120,
-      "recent_action_kinds": [],
-      "recent_queries": []
-    }
   },
   {
     "id": "mem:1783109336708",
@@ -77,7 +58,7 @@
     "symbol_hash": "",
     "created_at": "2026-07-03T20:08:56.708231+00:00",
     "created_epoch": 1783109336,
-    "updated_at": "2026-07-03T21:07:28.062395+00:00",
+    "updated_at": "2026-07-04T05:53:51.284555+00:00",
     "stale": false,
     "stale_reason": "",
     "observed_queries": [],
@@ -143,6 +124,38 @@
     "created_at": "2026-07-03T21:07:28.061497+00:00",
     "created_epoch": 1783112848,
     "updated_at": "2026-07-03T21:07:28.061499+00:00",
+    "stale": false,
+    "stale_reason": "",
+    "observed_queries": [],
+    "evidence": {
+      "window_sec": 120,
+      "recent_action_kinds": [],
+      "recent_queries": []
+    }
+  },
+  {
+    "id": "mem:1783144431283",
+    "kind": "decision",
+    "content": "Added Safari background-tab audio recovery: visibilitychange + focus listeners, AudioContext onstatechange auto-resume, Media Session API integration; refactored click handler into playAudio()/stopAudio().",
+    "tags": [
+      "added",
+      "safari",
+      "background",
+      "tab",
+      "audio",
+      "recovery",
+      "visibilitychange",
+      "focus"
+    ],
+    "files": [
+      "index.html"
+    ],
+    "file_path": "index.html",
+    "symbol_id": "",
+    "symbol_hash": "",
+    "created_at": "2026-07-04T05:53:51.283810+00:00",
+    "created_epoch": 1783144431,
+    "updated_at": "2026-07-04T05:53:51.283813+00:00",
     "stale": false,
     "stale_reason": "",
     "observed_queries": [],

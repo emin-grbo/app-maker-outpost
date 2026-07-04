@@ -152,6 +152,8 @@
 
     let isPlaying = false;
     let repl = null;
+    let currentAudioCtx = null;
+    const trackedContexts = new WeakSet();
     const btn = document.getElementById('play-btn');
     const icon = document.getElementById('play-icon');
     const status = document.getElementById('status');
@@ -189,6 +191,24 @@
       log('Strudel REPL ready');
     }
 
+    // Attach a one-time state listener so a suspended context auto-resumes while playing
+    function trackContext(ctx) {
+      if (!ctx || trackedContexts.has(ctx)) return;
+      trackedContexts.add(ctx);
+      currentAudioCtx = ctx;
+      ctx.addEventListener('statechange', async () => {
+        log(`AudioContext state -> ${ctx.state}`);
+        if (isPlaying && (ctx.state === 'suspended' || ctx.state === 'interrupted')) {
+          try {
+            await ctx.resume();
+            log(`Auto-resumed -> ${ctx.state}`);
+          } catch (e) {
+            log(`Auto-resume failed: ${e.message}`, 'err');
+          }
+        }
+      });
+    }
+
     // Find and resume all AudioContexts on the page (Safari keeps them suspended)
     async function resumeAllAudioContexts() {
       // Method 1: Check Strudel's internal getAudioContext if exposed
@@ -206,6 +226,7 @@
           if (ctx && ctx.state) {
             found++;
             log(`Found ctx via internal API (state: ${ctx.state})`);
+            trackContext(ctx);
             if (ctx.state !== 'running') {
               await ctx.resume();
               log(`Resumed -> ${ctx.state}`);
@@ -221,6 +242,7 @@
           if (ctx) {
             found++;
             log(`Found ctx via getAudioContext() (state: ${ctx.state})`);
+            trackContext(ctx);
             if (ctx.state !== 'running') {
               await ctx.resume();
               log(`Resumed -> ${ctx.state}`);
@@ -235,55 +257,94 @@
       return found;
     }
 
-    btn.addEventListener('click', async () => {
-      if (!isPlaying) {
-        try {
-          status.textContent = 'loading...';
-          await setupRepl();
+    async function playAudio() {
+      if (isPlaying) return;
+      try {
+        status.textContent = 'loading...';
+        await setupRepl();
 
-          log('Starting playback...');
-          // Use start() which handles AudioContext creation + resume internally
-          if (repl.editor.start) {
-            await repl.editor.start();
-            log('editor.start() called');
-          }
-          await repl.editor.evaluate();
-          log('editor.evaluate() called');
-
-          // Resume contexts immediately (still in user gesture callstack)
-          await resumeAllAudioContexts();
-
-          // Delayed retry - catch lazy context creation
-          setTimeout(async () => {
-            const n = await resumeAllAudioContexts();
-            log(`Delayed resume check: ${n} context(s) found`);
-          }, 1000);
-
-          // Another retry at 3s for slow sample loading
-          setTimeout(async () => {
-            await resumeAllAudioContexts();
-          }, 3000);
-
-          isPlaying = true;
-          btn.classList.add('playing');
-          icon.innerHTML = pausePath;
-          status.textContent = 'playing';
-          status.classList.add('active');
-          glow.classList.add('active');
-          log('Playback started');
-        } catch (e) {
-          log(`Play error: ${e.message}`, 'err');
-          status.textContent = 'error - see debug below';
+        log('Starting playback...');
+        // Use start() which handles AudioContext creation + resume internally
+        if (repl.editor.start) {
+          await repl.editor.start();
+          log('editor.start() called');
         }
-      } else {
-        repl.editor.stop();
-        isPlaying = false;
-        btn.classList.remove('playing');
-        icon.innerHTML = playPath;
-        status.textContent = 'click to listen';
-        status.classList.remove('active');
-        glow.classList.remove('active');
-        log('Stopped');
+        await repl.editor.evaluate();
+        log('editor.evaluate() called');
+
+        // Resume contexts immediately (still in user gesture callstack)
+        await resumeAllAudioContexts();
+
+        // Delayed retry - catch lazy context creation
+        setTimeout(async () => {
+          const n = await resumeAllAudioContexts();
+          log(`Delayed resume check: ${n} context(s) found`);
+        }, 1000);
+
+        // Another retry at 3s for slow sample loading
+        setTimeout(async () => {
+          await resumeAllAudioContexts();
+        }, 3000);
+
+        isPlaying = true;
+        btn.classList.add('playing');
+        icon.innerHTML = pausePath;
+        status.textContent = 'playing';
+        status.classList.add('active');
+        glow.classList.add('active');
+        log('Playback started');
+
+        // Media Session — signals to Safari this tab is a media player + adds OS media controls
+        if ('mediaSession' in navigator) {
+          try {
+            navigator.mediaSession.metadata = new MediaMetadata({
+              title: 'bunker fog',
+              artist: 'generative ambient',
+            });
+            navigator.mediaSession.playbackState = 'playing';
+            navigator.mediaSession.setActionHandler('play', () => playAudio());
+            navigator.mediaSession.setActionHandler('pause', () => stopAudio());
+            log('MediaSession registered');
+          } catch (e) {
+            log(`MediaSession setup failed: ${e.message}`, 'warn');
+          }
+        }
+      } catch (e) {
+        log(`Play error: ${e.message}`, 'err');
+        status.textContent = 'error - see debug below';
+      }
+    }
+
+    function stopAudio() {
+      if (!isPlaying) return;
+      repl.editor.stop();
+      isPlaying = false;
+      btn.classList.remove('playing');
+      icon.innerHTML = playPath;
+      status.textContent = 'click to listen';
+      status.classList.remove('active');
+      glow.classList.remove('active');
+      log('Stopped');
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+      }
+    }
+
+    btn.addEventListener('click', () => {
+      if (isPlaying) stopAudio(); else playAudio();
+    });
+
+    // Safari suspends background tabs — resume when tab/window becomes active again
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible' && isPlaying) {
+        log('Tab visible — verifying audio context…');
+        await resumeAllAudioContexts();
+      }
+    });
+    window.addEventListener('focus', async () => {
+      if (isPlaying) {
+        log('Window focused — verifying audio context…');
+        await resumeAllAudioContexts();
       }
     });
   </script>
