@@ -72,16 +72,16 @@
     .status.active {
       color: #6cf;
     }
-    /* Hidden strudel editor - in viewport but invisible (Safari blocks off-screen audio) */
+    /* Strudel editor - in viewport, near-invisible (Safari kills off-screen audio) */
     #strudel-host {
       position: fixed;
       bottom: 0;
       left: 0;
-      width: 1px;
+      width: 100%;
       height: 1px;
-      overflow: hidden;
       opacity: 0.01;
       pointer-events: none;
+      z-index: -1;
     }
     #debug {
       position: fixed;
@@ -134,23 +134,6 @@
   <div id="strudel-host"></div>
   <div id="debug"></div>
 
-  <script>
-    // Capture every AudioContext created (Strudel makes its own internally).
-    // Needed so we can resume them on Safari, which keeps them suspended.
-    window.__audioCtxs = [];
-    (function () {
-      const Orig = window.AudioContext || window.webkitAudioContext;
-      if (!Orig) return;
-      function Patched(...args) {
-        const ctx = new Orig(...args);
-        window.__audioCtxs.push(ctx);
-        return ctx;
-      }
-      Patched.prototype = Orig.prototype;
-      window.AudioContext = Patched;
-      if (window.webkitAudioContext) window.webkitAudioContext = Patched;
-    })();
-  </script>
   <script src="https://unpkg.com/@strudel/repl@latest"></script>
   <script>
     // Debug logger
@@ -188,7 +171,7 @@
       const code = await response.text();
       log(`Code loaded (${code.length} chars)`);
 
-      log('Creating hidden strudel-editor...');
+      log('Creating strudel-editor...');
       repl = document.createElement('strudel-editor');
       repl.setAttribute('code', code);
       document.getElementById('strudel-host').append(repl);
@@ -206,47 +189,81 @@
       log('Strudel REPL ready');
     }
 
+    // Find and resume all AudioContexts on the page (Safari keeps them suspended)
+    async function resumeAllAudioContexts() {
+      // Method 1: Check Strudel's internal getAudioContext if exposed
+      const methods = [
+        () => repl?.editor?.repl?.scheduler?.audioContext,
+        () => repl?.editor?.repl?.audioContext,
+        () => repl?.editor?.audioContext,
+        () => document.querySelector('strudel-editor')?.editor?.repl?.scheduler?.audioContext,
+      ];
+      
+      let found = 0;
+      for (const getter of methods) {
+        try {
+          const ctx = getter();
+          if (ctx && ctx.state) {
+            found++;
+            log(`Found ctx via internal API (state: ${ctx.state})`);
+            if (ctx.state !== 'running') {
+              await ctx.resume();
+              log(`Resumed -> ${ctx.state}`);
+            }
+          }
+        } catch(e) {}
+      }
+
+      // Method 2: Try getAudioContext global (Strudel sometimes exposes this)
+      if (window.getAudioContext) {
+        try {
+          const ctx = window.getAudioContext();
+          if (ctx) {
+            found++;
+            log(`Found ctx via getAudioContext() (state: ${ctx.state})`);
+            if (ctx.state !== 'running') {
+              await ctx.resume();
+              log(`Resumed -> ${ctx.state}`);
+            }
+          }
+        } catch(e) {}
+      }
+
+      if (found === 0) {
+        log('No AudioContext found via known paths', 'warn');
+      }
+      return found;
+    }
+
     btn.addEventListener('click', async () => {
       if (!isPlaying) {
         try {
           status.textContent = 'loading...';
           await setupRepl();
-          // Safari: AudioContexts stay suspended — resume all captured ones inside user gesture
-          try {
-            const ctxs = window.__audioCtxs || [];
-            log(`Captured AudioContexts: ${ctxs.length}`);
-            for (const ctx of ctxs) {
-              if (ctx.state === 'suspended') {
-                await ctx.resume();
-                log(`AudioContext resumed (now: ${ctx.state})`);
-              } else {
-                log(`AudioContext state: ${ctx.state}`);
-              }
-            }
-          } catch (e) {
-            log(`AudioContext resume failed: ${e.message}`, 'warn');
-          }
-          log('Starting playback (editor.evaluate)...');
-          await repl.editor.evaluate();
-          // Also try .start() in case evaluate doesn't trigger scheduler
+
+          log('Starting playback...');
+          // Use start() which handles AudioContext creation + resume internally
           if (repl.editor.start) {
             await repl.editor.start();
             log('editor.start() called');
           }
-          // Second pass: Strudel may create its context lazily during evaluate
+          await repl.editor.evaluate();
+          log('editor.evaluate() called');
+
+          // Resume contexts immediately (still in user gesture callstack)
+          await resumeAllAudioContexts();
+
+          // Delayed retry - catch lazy context creation
           setTimeout(async () => {
-            for (const ctx of (window.__audioCtxs || [])) {
-              if (ctx.state === 'suspended' || ctx.state === 'interrupted') {
-                try {
-                  await ctx.resume();
-                  log(`Late AudioContext resumed from ${ctx.state} (now: ${ctx.state})`);
-                } catch (e) {
-                  log(`Late resume failed: ${e.message}`, 'warn');
-                }
-              }
-            }
-            log(`Post-play contexts: ${(window.__audioCtxs || []).map(c => c.state).join(', ') || 'none'}`);
-          }, 500);
+            const n = await resumeAllAudioContexts();
+            log(`Delayed resume check: ${n} context(s) found`);
+          }, 1000);
+
+          // Another retry at 3s for slow sample loading
+          setTimeout(async () => {
+            await resumeAllAudioContexts();
+          }, 3000);
+
           isPlaying = true;
           btn.classList.add('playing');
           icon.innerHTML = pausePath;
