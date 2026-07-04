@@ -8,7 +8,7 @@ let pads = chord("<Fmaj9 Cmaj7 Am9 Em11>/4").dict('ireal')
 stack(
 
  //  RADIO QUOTES - rare, plays full sample
- s("steveQuotes").n(irand(2))
+ s("steveQuotes").n(irand(3))
    .struct("<0 0 0 1 0 0 0 0>/8")
    .lpf(2500).hpf(300)            // radio band-pass
    .shape(.3)                      // slight crunch = radio distortion
