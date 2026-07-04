@@ -72,15 +72,15 @@
     .status.active {
       color: #6cf;
     }
-    /* Hidden strudel editor - handles all audio, never visible */
+    /* Hidden strudel editor - in viewport but invisible (Safari blocks off-screen audio) */
     #strudel-host {
       position: fixed;
-      top: -9999px;
-      left: -9999px;
+      bottom: 0;
+      left: 0;
       width: 1px;
       height: 1px;
       overflow: hidden;
-      opacity: 0;
+      opacity: 0.01;
       pointer-events: none;
     }
     #debug {
@@ -228,19 +228,24 @@
           }
           log('Starting playback (editor.evaluate)...');
           await repl.editor.evaluate();
+          // Also try .start() in case evaluate doesn't trigger scheduler
+          if (repl.editor.start) {
+            await repl.editor.start();
+            log('editor.start() called');
+          }
           // Second pass: Strudel may create its context lazily during evaluate
           setTimeout(async () => {
             for (const ctx of (window.__audioCtxs || [])) {
-              if (ctx.state === 'suspended') {
+              if (ctx.state === 'suspended' || ctx.state === 'interrupted') {
                 try {
                   await ctx.resume();
-                  log(`Late AudioContext resumed (now: ${ctx.state})`);
+                  log(`Late AudioContext resumed from ${ctx.state} (now: ${ctx.state})`);
                 } catch (e) {
                   log(`Late resume failed: ${e.message}`, 'warn');
                 }
               }
             }
-            log(`Post-play context states: ${(window.__audioCtxs || []).map(c => c.state).join(', ') || 'none captured'}`);
+            log(`Post-play contexts: ${(window.__audioCtxs || []).map(c => c.state).join(', ') || 'none'}`);
           }, 500);
           isPlaying = true;
           btn.classList.add('playing');
