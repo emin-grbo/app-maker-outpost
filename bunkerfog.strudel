@@ -6,6 +6,17 @@ setcps(.5)
 
 let pads = chord("<Fmaj9 Cmaj7 Am9 Em11>/4").dict('ireal')
 stack(
+
+ //  RADIO QUOTES - rare, plays full sample
+ s("steveQuotes").n(irand(2))
+   .struct("<0 0 0 1 0 0 0 0>/8")
+   .lpf(2500).hpf(300)            // radio band-pass
+   .shape(.3)                      // slight crunch = radio distortion
+   .gain(.8)
+   .speed(rand.range(.9, 1.1))    // slight pitch wobble
+   .pan(rand)                      // random stereo placement
+   .cut(1)                         // cuts previous quote if new one triggers
+   ,
     
 note("[D3, A3, D4, F#4] [G3, B3, D4, G4] [Bm3, F#3, B3, D4] [A3, E4, A4, C#5]")
   .room(2).size(.2)
@@ -59,6 +70,7 @@ note("<C5 E5 G5 B5 D6>*8?")
     )
 )
 .late("[0 .005]*2")
+._scope()
 
 /*
 
@@ -141,15 +153,6 @@ note("<C5 E5 G5 B5 D6>*8?")
    .mask("<0 0 0 1>/4")
    .lpf(600)
    ,
- RADIO QUOTES - rare, plays full sample
- s("steveQuotes").n(irand(2))
-   .struct("<0 0 0 1 0 0 0 0>/8")   // triggers once every ~16 seconds
-   .lpf(2500).hpf(300)            // radio band-pass
-   .shape(.3)                      // slight crunch = radio distortion
-   .gain(.8)
-   .speed(rand.range(.9, 1.1))    // slight pitch wobble
-   .pan(rand)                      // random stereo placement
-   .cut(1)                         // cuts previous quote if new one triggers
-   ,
+
    */
 
