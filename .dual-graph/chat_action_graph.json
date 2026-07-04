@@ -49,6 +49,13 @@
       "meta": {
         "summary": "Added Safari background-tab audio recovery: visibilitychange + focus listeners, AudioContext onstatechange auto-resume, Media Session API integration; refactored click handler into playAudio()/stopAudio()."
       }
+    },
+    {
+      "id": "action:edit:1783145040",
+      "type": "action",
+      "meta": {
+        "summary": "Added inline worker-timers monkey-patch of window.setInterval/clearInterval so Strudel's scheduler uses a Web Worker (like strudel.cc does with the 'worker-timers' npm pkg) \u2014 prevents Safari from stopping playback in background tabs."
+      }
     }
   ],
   "edges": [
@@ -90,6 +97,12 @@
       "to": "index.html",
       "rel": "edited",
       "ts": 1783144431
+    },
+    {
+      "from": "action:edit:1783145040",
+      "to": "index.html",
+      "rel": "edited",
+      "ts": 1783145040
     }
   ],
   "files": {
@@ -103,8 +116,8 @@
     },
     "index.html": {
       "last_action": "edited",
-      "last_ts": "2026-07-04T05:53:51.283359+00:00",
-      "edited_count": 4
+      "last_ts": "2026-07-04T06:04:00.139088+00:00",
+      "edited_count": 5
     }
   },
   "actions": [
@@ -143,6 +156,13 @@
       "payload": {
         "kind": "register_edit"
       }
+    },
+    {
+      "ts": 1783145040,
+      "kind": "register_edit",
+      "payload": {
+        "kind": "register_edit"
+      }
     }
   ],
   "decisions": [
@@ -173,6 +193,14 @@
     {
       "ts": 1783144431,
       "summary": "Added Safari background-tab audio recovery: visibilitychange + focus listeners, AudioContext onstatechange auto-resume, Media Session API integration; refactored click handler into playAudio()/stopAudio().",
+      "files": [
+        "index.html"
+      ],
+      "scope": "file"
+    },
+    {
+      "ts": 1783145040,
+      "summary": "Added inline worker-timers monkey-patch of window.setInterval/clearInterval so Strudel's scheduler uses a Web Worker (like strudel.cc does with the 'worker-timers' npm pkg) \u2014 prevents Safari from stopping playback in background tabs.",
       "files": [
         "index.html"
       ],

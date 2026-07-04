@@ -134,6 +134,67 @@
   <div id="strudel-host"></div>
   <div id="debug"></div>
 
+  <script>
+    // -----------------------------------------------------------------------
+    // Worker-driven setInterval/clearInterval — must run BEFORE @strudel/repl.
+    // Strudel's Cyclist (packages/core/zyklus.mjs) defaults to
+    //   setInterval = globalThis.setInterval
+    // which Safari throttles/pauses in background tabs. Web Worker timers keep
+    // ticking when the tab is hidden. strudel.cc does the same via the
+    // `worker-timers` npm package; we inline the equivalent here so playback
+    // continues in background Safari tabs.
+    // -----------------------------------------------------------------------
+    (function installWorkerTimers() {
+      const src = `
+        const timers = new Map();
+        self.onmessage = (e) => {
+          const { id, action, delay } = e.data;
+          if (action === 'set') {
+            const nid = setInterval(() => self.postMessage(id), delay);
+            timers.set(id, nid);
+          } else if (action === 'clear') {
+            const nid = timers.get(id);
+            if (nid !== undefined) { clearInterval(nid); timers.delete(id); }
+          }
+        };
+      `;
+      let worker;
+      try {
+        worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'application/javascript' })));
+      } catch (e) {
+        console.warn('[worker-timers] Worker unavailable, keeping native setInterval', e);
+        return;
+      }
+      const callbacks = new Map();
+      let nextId = 1;
+      worker.onmessage = (e) => {
+        const cb = callbacks.get(e.data);
+        if (cb) cb();
+      };
+      const nativeSetInterval = window.setInterval;
+      const nativeClearInterval = window.clearInterval;
+      window.setInterval = function (callback, delay) {
+        if (typeof callback !== 'function') {
+          // Strings, missing delay, etc. — fall back to native
+          return nativeSetInterval.apply(window, arguments);
+        }
+        const id = nextId++;
+        callbacks.set(id, callback);
+        worker.postMessage({ id, action: 'set', delay: delay || 0 });
+        return id;
+      };
+      window.clearInterval = function (id) {
+        if (callbacks.has(id)) {
+          callbacks.delete(id);
+          worker.postMessage({ id, action: 'clear' });
+        } else {
+          nativeClearInterval.call(window, id);
+        }
+      };
+      console.log('[worker-timers] installed — setInterval now runs off a Web Worker');
+    })();
+  </script>
+
   <script src="https://unpkg.com/@strudel/repl@latest"></script>
   <script>
     // Debug logger
