@@ -134,6 +134,67 @@
   <div id="strudel-host"></div>
   <div id="debug"></div>
 
+  <script>
+    // -----------------------------------------------------------------------
+    // Worker-driven setInterval/clearInterval — must run BEFORE @strudel/repl.
+    // Strudel's Cyclist (packages/core/zyklus.mjs) defaults to
+    //   setInterval = globalThis.setInterval
+    // which Safari throttles/pauses in background tabs. Web Worker timers keep
+    // ticking when the tab is hidden. strudel.cc does the same via the
+    // `worker-timers` npm package; we inline the equivalent here so playback
+    // continues in background Safari tabs.
+    // -----------------------------------------------------------------------
+    (function installWorkerTimers() {
+      const src = `
+        const timers = new Map();
+        self.onmessage = (e) => {
+          const { id, action, delay } = e.data;
+          if (action === 'set') {
+            const nid = setInterval(() => self.postMessage(id), delay);
+            timers.set(id, nid);
+          } else if (action === 'clear') {
+            const nid = timers.get(id);
+            if (nid !== undefined) { clearInterval(nid); timers.delete(id); }
+          }
+        };
+      `;
+      let worker;
+      try {
+        worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'application/javascript' })));
+      } catch (e) {
+        console.warn('[worker-timers] Worker unavailable, keeping native setInterval', e);
+        return;
+      }
+      const callbacks = new Map();
+      let nextId = 1;
+      worker.onmessage = (e) => {
+        const cb = callbacks.get(e.data);
+        if (cb) cb();
+      };
+      const nativeSetInterval = window.setInterval;
+      const nativeClearInterval = window.clearInterval;
+      window.setInterval = function (callback, delay) {
+        if (typeof callback !== 'function') {
+          // Strings, missing delay, etc. — fall back to native
+          return nativeSetInterval.apply(window, arguments);
+        }
+        const id = nextId++;
+        callbacks.set(id, callback);
+        worker.postMessage({ id, action: 'set', delay: delay || 0 });
+        return id;
+      };
+      window.clearInterval = function (id) {
+        if (callbacks.has(id)) {
+          callbacks.delete(id);
+          worker.postMessage({ id, action: 'clear' });
+        } else {
+          nativeClearInterval.call(window, id);
+        }
+      };
+      console.log('[worker-timers] installed — setInterval now runs off a Web Worker');
+    })();
+  </script>
+
   <script src="https://unpkg.com/@strudel/repl@latest"></script>
   <script>
     // Debug logger
@@ -152,6 +213,8 @@
 
     let isPlaying = false;
     let repl = null;
+    let currentAudioCtx = null;
+    const trackedContexts = new WeakSet();
     const btn = document.getElementById('play-btn');
     const icon = document.getElementById('play-icon');
     const status = document.getElementById('status');
@@ -189,6 +252,24 @@
       log('Strudel REPL ready');
     }
 
+    // Attach a one-time state listener so a suspended context auto-resumes while playing
+    function trackContext(ctx) {
+      if (!ctx || trackedContexts.has(ctx)) return;
+      trackedContexts.add(ctx);
+      currentAudioCtx = ctx;
+      ctx.addEventListener('statechange', async () => {
+        log(`AudioContext state -> ${ctx.state}`);
+        if (isPlaying && (ctx.state === 'suspended' || ctx.state === 'interrupted')) {
+          try {
+            await ctx.resume();
+            log(`Auto-resumed -> ${ctx.state}`);
+          } catch (e) {
+            log(`Auto-resume failed: ${e.message}`, 'err');
+          }
+        }
+      });
+    }
+
     // Find and resume all AudioContexts on the page (Safari keeps them suspended)
     async function resumeAllAudioContexts() {
       // Method 1: Check Strudel's internal getAudioContext if exposed
@@ -206,6 +287,7 @@
           if (ctx && ctx.state) {
             found++;
             log(`Found ctx via internal API (state: ${ctx.state})`);
+            trackContext(ctx);
             if (ctx.state !== 'running') {
               await ctx.resume();
               log(`Resumed -> ${ctx.state}`);
@@ -221,6 +303,7 @@
           if (ctx) {
             found++;
             log(`Found ctx via getAudioContext() (state: ${ctx.state})`);
+            trackContext(ctx);
             if (ctx.state !== 'running') {
               await ctx.resume();
               log(`Resumed -> ${ctx.state}`);
@@ -235,55 +318,94 @@
       return found;
     }
 
-    btn.addEventListener('click', async () => {
-      if (!isPlaying) {
-        try {
-          status.textContent = 'loading...';
-          await setupRepl();
+    async function playAudio() {
+      if (isPlaying) return;
+      try {
+        status.textContent = 'loading...';
+        await setupRepl();
 
-          log('Starting playback...');
-          // Use start() which handles AudioContext creation + resume internally
-          if (repl.editor.start) {
-            await repl.editor.start();
-            log('editor.start() called');
-          }
-          await repl.editor.evaluate();
-          log('editor.evaluate() called');
-
-          // Resume contexts immediately (still in user gesture callstack)
-          await resumeAllAudioContexts();
-
-          // Delayed retry - catch lazy context creation
-          setTimeout(async () => {
-            const n = await resumeAllAudioContexts();
-            log(`Delayed resume check: ${n} context(s) found`);
-          }, 1000);
-
-          // Another retry at 3s for slow sample loading
-          setTimeout(async () => {
-            await resumeAllAudioContexts();
-          }, 3000);
-
-          isPlaying = true;
-          btn.classList.add('playing');
-          icon.innerHTML = pausePath;
-          status.textContent = 'playing';
-          status.classList.add('active');
-          glow.classList.add('active');
-          log('Playback started');
-        } catch (e) {
-          log(`Play error: ${e.message}`, 'err');
-          status.textContent = 'error - see debug below';
+        log('Starting playback...');
+        // Use start() which handles AudioContext creation + resume internally
+        if (repl.editor.start) {
+          await repl.editor.start();
+          log('editor.start() called');
         }
-      } else {
-        repl.editor.stop();
-        isPlaying = false;
-        btn.classList.remove('playing');
-        icon.innerHTML = playPath;
-        status.textContent = 'click to listen';
-        status.classList.remove('active');
-        glow.classList.remove('active');
-        log('Stopped');
+        await repl.editor.evaluate();
+        log('editor.evaluate() called');
+
+        // Resume contexts immediately (still in user gesture callstack)
+        await resumeAllAudioContexts();
+
+        // Delayed retry - catch lazy context creation
+        setTimeout(async () => {
+          const n = await resumeAllAudioContexts();
+          log(`Delayed resume check: ${n} context(s) found`);
+        }, 1000);
+
+        // Another retry at 3s for slow sample loading
+        setTimeout(async () => {
+          await resumeAllAudioContexts();
+        }, 3000);
+
+        isPlaying = true;
+        btn.classList.add('playing');
+        icon.innerHTML = pausePath;
+        status.textContent = 'playing';
+        status.classList.add('active');
+        glow.classList.add('active');
+        log('Playback started');
+
+        // Media Session — signals to Safari this tab is a media player + adds OS media controls
+        if ('mediaSession' in navigator) {
+          try {
+            navigator.mediaSession.metadata = new MediaMetadata({
+              title: 'bunker fog',
+              artist: 'generative ambient',
+            });
+            navigator.mediaSession.playbackState = 'playing';
+            navigator.mediaSession.setActionHandler('play', () => playAudio());
+            navigator.mediaSession.setActionHandler('pause', () => stopAudio());
+            log('MediaSession registered');
+          } catch (e) {
+            log(`MediaSession setup failed: ${e.message}`, 'warn');
+          }
+        }
+      } catch (e) {
+        log(`Play error: ${e.message}`, 'err');
+        status.textContent = 'error - see debug below';
+      }
+    }
+
+    function stopAudio() {
+      if (!isPlaying) return;
+      repl.editor.stop();
+      isPlaying = false;
+      btn.classList.remove('playing');
+      icon.innerHTML = playPath;
+      status.textContent = 'click to listen';
+      status.classList.remove('active');
+      glow.classList.remove('active');
+      log('Stopped');
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+      }
+    }
+
+    btn.addEventListener('click', () => {
+      if (isPlaying) stopAudio(); else playAudio();
+    });
+
+    // Safari suspends background tabs — resume when tab/window becomes active again
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible' && isPlaying) {
+        log('Tab visible — verifying audio context…');
+        await resumeAllAudioContexts();
+      }
+    });
+    window.addEventListener('focus', async () => {
+      if (isPlaying) {
+        log('Window focused — verifying audio context…');
+        await resumeAllAudioContexts();
       }
     });
   </script>
