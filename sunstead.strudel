@@ -1,0 +1,118 @@
+// "sunstead" — sunny safehouse in the mountains, morning, fresh
+// sister piece to citadelfrost: same long-form engine, opposite light
+// D major over D+A pedal, brighter register, faster breath
+//
+// anti-monotony: 8-chord harmony (48 cycles) x transpose loops (29/31)
+//   x layer masks (7/9/11/13) => repeat period way past mix length
+//   perlin/rand on top never repeat at all
+
+setcps(.5) // 1 cycle = 2s — morning moves a little quicker
+
+stack(
+
+  // ---- GROUND — warm fifth pedal, D+A, sits higher than the frost sub ----
+  note("<[d2,a2] [d2,a2] [g1,d2] [d2,a2] [d2,a2] [a1,e2] [d2,a2] [d2,a2]>/6")
+    .s("sine")
+    .attack(3).sustain(1).release(6)
+    .gain(.55)
+    .lpf(perlin.range(150, 350).slow(11))
+  ,
+
+  // wooden body — cabin floor in the sun
+  note("<[d3,a3] [d3,a3] [g2,d3] [d3,a3] [d3,a3] [a2,e3] [d3,a3] [d3,a3]>/6")
+    .s("gm_pad_warm")
+    .attack(2.5).release(5)
+    .gain(perlin.range(.3, .55).slow(13))
+    .lpf(perlin.range(350, 900).slow(9))
+    .room(.5).size(3)
+  ,
+
+  // ---- PADS — 8 chords of open D major, 96s harmonic loop ----
+  note(`<
+    [d3,f#3,a3,c#4,e4] [g3,b3,d4,f#4] [b2,f#3,a3,d4] [a2,d3,e3,a3]
+    [d3,f#3,a3,c#4,e4] [e3,g3,b3,d4] [g3,b3,d4,f#4] [a3,c#4,e4,b4]
+  >/6`)
+    .s("gm_pad_new_age")
+    .attack(2).release(4)
+    .jux(rev)
+    .gain(perlin.range(.25, .5).slow(7))
+    .lpf(perlin.range(600, 1600).slow(17)) // more open than frost — daylight
+    .room(.7).size(5)
+  ,
+
+  // ---- GUITAR — nylon arpeggios, the hands of the piece ----
+  // 5 phrases against 8 chords, drifting transpose every 29 cycles
+  n("<[0 2 4 ~] [~ 4 2 5] [7 ~ 4 2] [~ 0 ~ 4] [2 4 5 ~]>"
+      .add("<0 2 4 1 0 3 -2>/29"))
+    .slow(2)
+    .scale("D3:major:pentatonic")
+    .s("gm_acoustic_guitar_nylon")
+    .sometimesBy(.25, x => x.add(note(12)))
+    .degradeBy(.25)
+    .gain(perlin.range(.5, .85).slow(8))
+    .attack(.02).release(1)
+    .pan(rand.range(.3, .7))
+    .delay(.25).delaytime(.75).delayfeedback(.25)
+    .lpf(3200)
+    .room(.4).size(3)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- FLUTE — mountain air, rare long phrases, the morning voice ----
+  n("<[~ ~ 4 ~] [5 ~ ~ ~] [~ 7 ~ 5] [~ ~ ~ ~] [4 ~ ~ 2] [~ ~ ~ ~]>"
+      .add("<0 2 0 -2 1>/31"))
+    .slow(4)
+    .scale("D5:major:pentatonic")
+    .s("gm_pan_flute")
+    .degradeBy(.3)
+    .attack(.4).sustain(.8).release(2)
+    .gain(perlin.range(.3, .55).slow(10))
+    .pan(sine.range(.35, .65).slow(21))
+    .delay(.3).delaytime(1.5).delayfeedback(.3)
+    .lpf(2400)
+    .room(.8).size(6)
+    .mask("<0 1 1 1 0 1 1 1 1 0 1 1 1>/13")
+  ,
+
+  // ---- MARIMBA — answers the guitar from across the room ----
+  n("<[~ 0 ~ 2] [1 ~ ~ ~] [~ 3 ~ 0] [~ ~ 4 ~]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(3)
+    .scale("D4:major:pentatonic")
+    .s("gm_marimba")
+    .degradeBy(.4)
+    .gain(.45)
+    .pan(rand.range(.25, .75))
+    .delay(.25).delaytime("3/4").delayfeedback(.2)
+    .lpf(2200)
+    .room(.5).size(3)
+    .mask("<1 1 0 1 1 1 0>/7")
+  ,
+
+  // ---- LIGHT — random pentatonic glints, dust in a sunbeam ----
+  n(irand(8)).segment(8)
+    .scale("D6:major:pentatonic")
+    .s("gm_celesta")
+    .degradeBy(.85)
+    .gain(rand.range(.15, .35))
+    .pan(rand)
+    .attack(.01).release(1.5)
+    .delay(.35).delaytime("3/8").delayfeedback(.4)
+    .lpf(rand.range(2500, 6000))
+    .room(.8).size(7)
+  ,
+
+  // ---- BIRDS — very rare, far away. delete this block if you layer
+  //      your own field recordings instead
+  s("gm_bird_tweet")
+    .n(irand(3))
+    .struct("<[~ x ~ ~] [~ ~ ~ ~] [~ ~ x ~] [~ ~ ~ ~] [~ ~ ~ ~]>/4")
+    .degradeBy(.5)
+    .speed(rand.range(.85, 1.05))
+    .gain(rand.range(.1, .25))
+    .pan(rand)
+    .hpf(1200).lpf(5000)
+    .room(.9).size(8)
+    .mask("<1 0 1 1 0 1 0 1 1 0 1>/11")
+)
+._scope()

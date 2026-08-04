@@ -1,0 +1,109 @@
+// "tradewind" — small sloop, steady following wind, nothing to trim
+// D major, easy swing. marimba keeps the boat's rhythm, steel guitar aft
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// bright sky, but the mix stays balanced — sun on water, not in your eyes
+
+setcps(.44) // 1 cycle ≈ 2.3s — hull speed, no more, no less
+
+stack(
+
+  // ---- HULL — D+A pedal, the keel doing its quiet work ----
+  note("<[d1,a1] [d1,a1] [g1,d2] [d1,a1] [d1,a1] [b1,f#2] [d1,a1] [a1,e2]>/6")
+    .s("sine")
+    .attack(3).sustain(1).release(6)
+    .gain(.65)
+    .lpf(perlin.range(110, 290).slow(11))
+  ,
+
+  // sweep pad — the wind that never gusts, never dies
+  note("<[d2,a2] [d2,a2] [g2,d3] [d2,a2] [d2,a2] [b2,f#3] [d2,a2] [a2,e3]>/6")
+    .s("gm_pad_sweep")
+    .attack(2.5).release(5)
+    .gain(perlin.range(.14, .3).slow(13))
+    .lpf(perlin.range(300, 700).slow(9))
+    .room(.7).size(7) // open water
+  ,
+
+  // ---- PADS — 8 chords of D major, long swells ----
+  note(`<
+    [d3,f#3,a3,c#4,e4] [g2,b2,d3,f#3] [b2,d3,f#3,a3] [a2,c#3,e3,g3]
+    [d3,f#3,a3,c#4,e4] [e3,g3,b3,d4] [f#3,a3,c#4,e4] [g2,b2,d3,f#3]
+  >/6`)
+    .s("gm_pad_new_age")
+    .attack(2.5).release(5)
+    .jux(rev)
+    .gain(perlin.range(.2, .4).slow(7))
+    .lpf(perlin.range(340, 820).slow(19))
+    .room(.7).size(7)
+  ,
+
+  // ---- MARIMBA — deck rhythm, halyard tapping the mast ----
+  n("<[0 ~ 2 4] [~ 3 ~ 2] [5 ~ 4 ~] [~ 0 ~ ~] [4 2 ~ 5] [~ ~ 0 ~]>"
+      .add("<0 2 -2 3 1 0 4>/29"))
+    .slow(2)
+    .scale("D4:major:pentatonic")
+    .s("gm_marimba")
+    .degradeBy(.3)
+    .gain(perlin.range(.4, .65).slow(8))
+    .attack(.02).release(1.2)
+    .pan(rand.range(.35, .6))
+    .delay(.2).delaytime(.75).delayfeedback(.2)
+    .lpf(1800)
+    .room(.6).size(5)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- STEEL GUITAR — helmsman's tune, one hand on the tiller ----
+  n("<[~ 0 ~ 2] [4 ~ ~ ~] [~ ~ 5 3] [~ 2 ~ 0] [~ ~ 4 ~] [2 ~ ~ ~]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(3)
+    .scale("D3:major:pentatonic")
+    .s("gm_acoustic_guitar_steel")
+    .degradeBy(.35)
+    .gain(perlin.range(.3, .55).slow(10))
+    .attack(.02).release(1.5)
+    .pan(rand.range(.55, .8)) // aft, by the tiller
+    .delay(.25).delaytime(1).delayfeedback(.25)
+    .lpf(1700)
+    .room(.6).size(5)
+    .mask("<1 1 0 1 1 1 1 0 1 1 1 0 1>/13")
+  ,
+
+  // ---- WAKE — fretless bass, water peeling off the stern ----
+  note("<[d2] [~] [a1] [~] [b1] [~] [g1] [~] [a1] [~] [e2] [~]>/3")
+    .s("gm_fretless_bass")
+    .attack(.6).sustain(.7).release(2)
+    .degradeBy(.3)
+    .gain(rand.range(.25, .42))
+    .pan(rand.range(.4, .6))
+    .lpf(600)
+    .room(.5).size(4)
+    .mask("<1 0 1 1 1 0 1>/7")
+  ,
+
+  // ---- SHIP'S BELL — half-hour struck, kept quiet by the wind ----
+  note("<d4 a3>/8")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ x ~] [~ ~ ~ ~]>/3")
+    .s("gm_tubular_bells")
+    .degradeBy(.45)
+    .gain(rand.range(.08, .18))
+    .attack(.01).release(3.5)
+    .pan(sine.range(.2, .45).slow(29))
+    .lpf(1000)
+    .room(.8).size(8)
+    .mask("<1 1 0 1 1 0 1 1 1 0 1>/11")
+  ,
+
+  // ---- SPRAY — kalimba flecks off the bow, kept mid and dim ----
+  n(irand(8)).segment(8)
+    .scale("D4:major:pentatonic")
+    .s("gm_kalimba")
+    .degradeBy(.88)
+    .gain(rand.range(.06, .16))
+    .pan(rand.range(.3, .7))
+    .attack(.02).release(1.5)
+    .delay(.25).delaytime("3/8").delayfeedback(.3)
+    .lpf(rand.range(800, 1700))
+    .room(.7).size(6)
+)
+._scope()

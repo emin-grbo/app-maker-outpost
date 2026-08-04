@@ -1,0 +1,108 @@
+// "undercroft" — stone cellar beneath the abbey, lamplight, cool still air
+// D minor, everything kept low and even. cello thinks, piano answers from
+// the dark, nothing above the vaulting reaches down here.
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// deliberately no high sparkle layer — ceiling is ~1500Hz, weight sits low
+
+setcps(.34) // 1 cycle ≈ 2.9s — stone keeps its own time
+
+stack(
+
+  // ---- FOUNDATION — D+A pedal, the weight of the building above ----
+  note("<[d1,a1] [d1,a1] [b0,f1] [d1,a1] [d1,a1] [c1,g1] [d1,a1] [g0,d1]>/6")
+    .s("sine")
+    .attack(4).sustain(1).release(8)
+    .gain(.72)
+    .lpf(perlin.range(90, 240).slow(11))
+  ,
+
+  // bassoon breath — air moving between the pillars
+  note("<[d2,a2] [d2,a2] [b1,f2] [d2,a2] [d2,a2] [c2,g2] [d2,a2] [g1,d2]>/6")
+    .s("gm_bassoon")
+    .attack(3).release(6)
+    .gain(perlin.range(.15, .32).slow(13))
+    .lpf(perlin.range(180, 480).slow(9))
+    .room(.6).size(4) // stone vaults
+  ,
+
+  // ---- PADS — 8 chords of D minor, kept under the vault line ----
+  note(`<
+    [d2,f2,a2,c3,e3] [b1,d2,f2,a2] [f2,a2,c3,e3] [c2,e2,g2,a2]
+    [d2,f2,a2,c3,e3] [g1,b1,d2,f2] [a1,c2,e2,g2] [b1,d2,f2,a2]
+  >/6`)
+    .s("gm_pad_warm")
+    .attack(3).release(6)
+    .jux(rev)
+    .gain(perlin.range(.25, .45).slow(7))
+    .lpf(perlin.range(250, 600).slow(19)) // never opens up — no daylight
+    .room(.6).size(5)
+  ,
+
+  // ---- CELLO — walks the rows, one slow thought per lamp ----
+  n("<[0 ~ 2 ~] [~ 3 ~ 2] [4 ~ ~ 0] [~ ~ 2 ~] [5 ~ 3 ~] [~ 0 ~ ~]>"
+      .add("<0 2 -2 3 1 0>/29"))
+    .slow(3)
+    .scale("D2:minor:pentatonic")
+    .s("gm_cello")
+    .degradeBy(.3)
+    .gain(perlin.range(.4, .7).slow(8))
+    .attack(.4).sustain(.8).release(2.5)
+    .pan(rand.range(.35, .6))
+    .lpf(900)
+    .room(.6).size(4)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- PIANO — answers from the far end, low register only ----
+  n("<[~ 0 ~ 2] [3 ~ ~ ~] [~ ~ 4 2] [~ 0 ~ ~] [~ ~ 5 ~] [3 ~ ~ 0]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(2)
+    .scale("D3:minor:pentatonic")
+    .s("gm_acoustic_grand_piano")
+    .degradeBy(.35)
+    .gain(perlin.range(.35, .55).slow(10))
+    .attack(.01).release(2)
+    .pan(rand.range(.55, .8)) // far end of the cellar
+    .delay(.2).delaytime(1).delayfeedback(.2)
+    .lpf(1200)
+    .room(.6).size(5)
+    .mask("<1 1 0 1 1 1 1 0 1 1 1 0 1>/13")
+  ,
+
+  // ---- DRIPS — contrabass pizzicato, water finding the drain ----
+  note("<[d2] [~] [~] [a1] [~] [f2] [~] [~] [c2] [~] [g1] [~]>/3")
+    .s("gm_pizzicato_strings")
+    .degradeBy(.4)
+    .gain(rand.range(.2, .38))
+    .attack(.01).release(.9)
+    .pan(rand.range(.3, .7))
+    .lpf(700)
+    .room(.6).size(5)
+    .mask("<1 0 1 1 1 0 1>/7")
+  ,
+
+  // ---- CHOIR — service overhead, through six feet of stone ----
+  note("<[d3,a3] [f3,c4] [a2,e3] [g3,d4] [d3,a3] [b2,f3] [c3,g3] [f3,c4]>/6")
+    .s("gm_choir_aahs")
+    .attack(2.5).release(5)
+    .degradeBy(.2)
+    .gain(perlin.range(.12, .28).slow(12))
+    .lpf(perlin.range(300, 700).slow(23)) // muffled by the floor
+    .pan(sine.range(.4, .6).slow(17))
+    .room(.8).size(7)
+    .mask("<0 1 1 1 0 1 1 0 1 1 1>/11")
+  ,
+
+  // ---- LAMP FLICKER — low marimba, dust settling, kept dim ----
+  n(irand(8)).segment(8)
+    .scale("D3:minor:pentatonic")
+    .s("gm_marimba")
+    .degradeBy(.9)
+    .gain(rand.range(.08, .2))
+    .pan(rand.range(.3, .7))
+    .attack(.02).release(1.5)
+    .delay(.3).delaytime("3/8").delayfeedback(.3)
+    .lpf(rand.range(600, 1400))
+    .room(.6).size(5)
+)
+._scope()

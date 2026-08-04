@@ -1,0 +1,95 @@
+// "hollowearth" — vast cave system, bioluminescent lake, headlamp off
+// C minor, the slowest and deepest of the set. drips keep their own time.
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+
+setcps(.3)
+
+stack(
+
+  // ---- BEDROCK — C+G pedal at the bottom of everything ----
+  note("<[c1,g1] [c1,g1] [g#0,d#1] [c1,g1] [c1,g1] [a#0,f1] [c1,g1] [f1,c2]>/6")
+    .s("sine")
+    .attack(6).sustain(1).release(10)
+    .gain(.75)
+    .lpf(perlin.range(80, 200).slow(11))
+  ,
+
+  // cave breath — air moving through galleries you can't see
+  note("<[c2,g2] [c2,g2] [g#1,d#2] [c2,g2] [c2,g2] [a#1,f2] [c2,g2] [f2,c3]>/6")
+    .s("gm_pad_bowed")
+    .attack(5).release(9)
+    .gain(perlin.range(.18, .4).slow(13))
+    .lpf(perlin.range(150, 450).slow(9))
+    .room(.95).size(9)
+  ,
+
+  // ---- PADS — C minor, glow off the lake ----
+  note(`<
+    [c3,d#3,g3,a#3,d4] [g#2,c3,d#3,g3] [d#3,g3,a#3,d4] [f2,g#2,c3,d#3]
+    [c3,d#3,g3,a#3,d4] [a#2,d3,f3,a3] [g2,a#2,d3,f3] [g#2,c3,d#3,g3]
+  >/6`)
+    .s("gm_pad_metallic")
+    .attack(4).release(8)
+    .jux(rev)
+    .gain(perlin.range(.15, .32).slow(7))
+    .lpf(perlin.range(250, 650).slow(19))
+    .room(.95).size(9)
+  ,
+
+  // ---- BOTTLE — wind over a shaft mouth somewhere above ----
+  n("<[~ ~ 0 ~] [~ 2 ~ ~] [4 ~ ~ ~] [~ ~ ~ 2] [~ 5 ~ ~] [~ ~ ~ ~]>"
+      .add("<0 2 -2 1 0>/29"))
+    .slow(4)
+    .scale("C4:minor:pentatonic")
+    .s("gm_blown_bottle")
+    .degradeBy(.35)
+    .attack(1).sustain(.7).release(3)
+    .gain(perlin.range(.25, .5).slow(8))
+    .pan(sine.range(.3, .7).slow(21))
+    .delay(.4).delaytime(2).delayfeedback(.35)
+    .lpf(1200)
+    .room(.9).size(9)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- HARP — low strings plucked by the lake edge ----
+  n("<[~ 0 ~ 2] [1 ~ ~ ~] [~ ~ 3 0] [~ 4 ~ ~]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(3)
+    .scale("C3:minor:pentatonic")
+    .s("gm_orchestral_harp")
+    .degradeBy(.4)
+    .gain(.45)
+    .pan(rand.range(.3, .7))
+    .delay(.35).delaytime(1.5).delayfeedback(.35)
+    .lpf(1400)
+    .room(.9).size(8)
+    .mask("<1 1 0 1 1 1 0>/7")
+  ,
+
+  // ---- DRIPS — pizzicato, each one falls when it's ready ----
+  n(irand(10)).segment(8)
+    .scale("C5:minor:pentatonic")
+    .s("gm_pizzicato_strings")
+    .degradeBy(.8)
+    .gain(rand.range(.15, .35))
+    .pan(rand)
+    .attack(.01).release(1)
+    .speed(rand.range(.9, 1.15))
+    .delay(.5).delaytime("<0.4 0.7 1.1>").delayfeedback(.5) // echoes off far walls
+    .lpf(rand.range(1200, 3000))
+    .room(.95).size(9)
+  ,
+
+  // ---- GLOW PULSE — the lake brightens when something moves in it ----
+  note("<[c4,g4] [d#4,a#4] [f4,c5] [a#3,f4]>/8")
+    .s("gm_fx_crystal")
+    .degradeBy(.3)
+    .attack(2.5).release(5)
+    .gain(perlin.range(.1, .3).slow(17))
+    .pan(sine.range(.35, .65).slow(25))
+    .lpf(1600)
+    .room(.9).size(9)
+    .mask("<0 1 1 0 1 1 1 0 1 1 1 0 1>/13")
+)
+._scope()

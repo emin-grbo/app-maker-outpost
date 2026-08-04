@@ -1,0 +1,109 @@
+// "harvesthome" — last field cut, golden hour, wagons rolling in
+// F major, dulcimer over stubble rows, fiddle warming up for tonight
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// golden, not glaring — the light is low and so is the mix
+
+setcps(.4) // 1 cycle = 2.5s — done hurrying for the year
+
+stack(
+
+  // ---- FIELD — F+C pedal, warm earth after a long day ----
+  note("<[f1,c2] [f1,c2] [bb1,f2] [f1,c2] [f1,c2] [d2,a2] [f1,c2] [c2,g2]>/6")
+    .s("sine")
+    .attack(3).sustain(1).release(6)
+    .gain(.65)
+    .lpf(perlin.range(110, 280).slow(11))
+  ,
+
+  // string haze — dust hanging gold over the stubble
+  note("<[f2,c3] [f2,c3] [bb2,f3] [f2,c3] [f2,c3] [d3,a3] [f2,c3] [c3,g3]>/6")
+    .s("gm_string_ensemble_1")
+    .attack(3).release(6)
+    .gain(perlin.range(.1, .24).slow(13))
+    .lpf(perlin.range(260, 580).slow(9))
+    .room(.6).size(6)
+  ,
+
+  // ---- PADS — 8 chords of F major, sheaves leaning together ----
+  note(`<
+    [f2,a2,c3,e3,g3] [bb2,d3,f3,a3] [d3,f3,a3,c4] [c3,e3,g3,bb3]
+    [f2,a2,c3,e3,g3] [g2,bb2,d3,f3] [a2,c3,e3,g3] [bb2,d3,f3,g3]
+  >/6`)
+    .s("gm_pad_warm")
+    .attack(2.5).release(5)
+    .jux(rev)
+    .gain(perlin.range(.22, .42).slow(7))
+    .lpf(perlin.range(300, 720).slow(19))
+    .room(.6).size(5)
+  ,
+
+  // ---- DULCIMER — counting wagons, glad of each one ----
+  n("<[0 ~ 2 ~] [~ 4 ~ 3] [5 ~ ~ 2] [~ 0 ~ ~] [4 ~ 7 ~] [~ 2 ~ 0]>"
+      .add("<0 2 -2 3 1 0 4>/29"))
+    .slow(2)
+    .scale("F3:major:pentatonic")
+    .s("gm_dulcimer")
+    .sometimesBy(.12, x => x.add(note(12)))
+    .degradeBy(.3)
+    .gain(perlin.range(.4, .65).slow(8))
+    .attack(.01).release(1.4)
+    .pan(rand.range(.35, .6))
+    .delay(.2).delaytime(.75).delayfeedback(.2)
+    .lpf(1800)
+    .room(.5).size(4)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- FIDDLE — trying phrases for the barn dance, soft for now ----
+  n("<[~ 0 ~ 2] [4 ~ ~ ~] [~ ~ 5 3] [~ 2 ~ 0] [~ ~ 4 ~] [2 ~ ~ ~]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(3)
+    .scale("F3:major:pentatonic")
+    .s("gm_violin")
+    .degradeBy(.45)
+    .attack(.4).sustain(.6).release(1.8)
+    .gain(perlin.range(.15, .3).slow(10)) // saving it for later
+    .pan(rand.range(.55, .78))
+    .lpf(1300)
+    .room(.6).size(5)
+    .mask("<1 1 0 1 1 1 1 0 1 1 1 0 1>/13")
+  ,
+
+  // ---- WAGON WHEELS — double bass pizz, slow over ruts ----
+  note("<[f1] [~] [c2] [~] [d2] [~] [bb1] [~] [c2] [~] [g1] [~]>/3")
+    .s("gm_acoustic_bass")
+    .degradeBy(.3)
+    .gain(rand.range(.25, .42))
+    .attack(.01).release(1)
+    .pan(rand.range(.4, .6))
+    .lpf(600)
+    .room(.5).size(4)
+    .mask("<1 0 1 1 1 0 1>/7")
+  ,
+
+  // ---- SUPPER CALL — voices from the farmhouse, far off ----
+  note("<[f3,c4] [a3,e4]>/8")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ x ~] [~ ~ ~ ~]>/3")
+    .s("gm_choir_aahs")
+    .degradeBy(.4)
+    .attack(1).release(3)
+    .gain(rand.range(.08, .18))
+    .pan(sine.range(.15, .4).slow(29))
+    .lpf(900)
+    .room(.8).size(8)
+    .mask("<1 1 0 1 1 0 1 1 1 0 1>/11")
+  ,
+
+  // ---- CHAFF — marimba flecks in the low sun, dim ----
+  n(irand(8)).segment(8)
+    .scale("F4:major:pentatonic")
+    .s("gm_marimba")
+    .degradeBy(.88)
+    .gain(rand.range(.06, .16))
+    .pan(rand.range(.3, .7))
+    .attack(.02).release(1.4)
+    .delay(.25).delaytime("3/8").delayfeedback(.3)
+    .lpf(rand.range(750, 1600))
+    .room(.6).size(5)
+)
+._scope()

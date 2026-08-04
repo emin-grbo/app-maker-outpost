@@ -1,156 +1,109 @@
-// "bunker fog" v2
+// "bunker fog" v3 — same sound, de-looped
+// engine from the new set: coprime cycles + transpose drift + masks + perlin
+// repeat period >> mix length; rand/perlin layers never repeat at all
 samples('github:emin-grbo/app-maker--outpost')
 samples('github:eddyflux/crate')
 
 setcps(.5)
 
-let pads = chord("<Fmaj9 Cmaj7 Am9 Em11>/4").dict('ireal')
 stack(
 
- //  RADIO QUOTES - rare, plays full sample
- s("steveQuotes").n(irand(3))
-   .struct("<0 0 0 1 0 0 0 0>/8")
-   .lpf(2500).hpf(300)            // radio band-pass
-   .shape(.3)                      // slight crunch = radio distortion
-   .gain(.8)
-   .speed(rand.range(.9, 1.1))    // slight pitch wobble
-   .pan(rand)                      // random stereo placement
-   .cut(1)                         // cuts previous quote if new one triggers
-   ,
-    
-note("[D3, A3, D4, F#4] [G3, B3, D4, G4] [Bm3, F#3, B3, D4] [A3, E4, A4, C#5]")
-  .room(2).size(.2)
-  .jux(rev)
-  .slow(8)
-  .sustain(5)
-  .sound("gm_choir_aahs")
-  .attack(.5)
-  .release(.8)
-  .lpf(sine.range(500, 1400))
-,
-
-note("<C5 E5 G5 B5 D6>*8?")
-  .s("gm_glockenspiel")
-  .slow(10)
-  .gain(5)
-  //.gain(rand.range(0.4, 0.54))
-  .pan(rand.range(-0.6, 0.6))
-  .attack(0.1)
-  .decay(0.3)
-  //.sustain(1)
-  .release(rand.range(0.4, 1.2))
-  .room(0.8)
-  .size(3)
-  .delay(0.25)
-  .delaytime("3/8")
-  .delayfeedback(0.25)
-  .lpf(rand.range(1200, 3500))
+  //  RADIO QUOTES - rare, plays full sample
+  s("steveQuotes").n(irand(3))
+    .struct("<0 0 0 1 0 0 0 0>/8")
+    .degradeBy(.25)                 // sometimes skips even its slot
+    .lpf(2500).hpf(300)             // radio band-pass
+    .shape(.3)                      // slight crunch = radio distortion
+    .gain(.8)
+    .speed(rand.range(.9, 1.1))     // slight pitch wobble
+    .pan(rand)                      // random stereo placement
+    .cut(1)                         // cuts previous quote if new one triggers
   ,
-  
+
+  // ---- SUB FLOOR — quiet D+A pedal under everything (new) ----
+  note("<[d2,a2] [d2,a2] [g1,d2] [d2,a2] [b1,f#2] [d2,a2] [e2,b2] [a1,e2]>/3")
+    .s("sine")
+    .attack(3).sustain(1).release(6)
+    .gain(perlin.range(.3, .5).slow(13))
+    .lpf(perlin.range(100, 260).slow(11))
+  ,
+
+  // ---- CHOIR — the original pad, now 8 chords + drifting filter ----
+  note(`<
+    [d3,a3,d4,f#4] [g3,b3,d4,g4] [b2,f#3,b3,d4] [a3,e4,a4,c#5]
+    [d3,a3,d4,f#4] [e3,b3,e4,g4] [g3,b3,d4,a4] [f#3,c#4,f#4,a4]
+  >/3`)
+    .room(2).size(.2)
+    .jux(rev)
+    .sustain(5)
+    .sound("gm_choir_aahs")
+    .attack(.5)
+    .release(.8)
+    .lpf(perlin.range(500, 1400).slow(9))  // was sine — perlin never loops
+    .gain(perlin.range(.8, 1.1).slow(7))
+  ,
+
+  // ---- GLOCK — was a fixed 5-note climb; now phrases that mutate ----
+  // 5 phrases x 8 chords (coprime) + transpose drift /29 + octave lifts
+  n("<[0 ~ 2 4] [~ 3 ~ 2] [5 ~ 4 ~] [~ 0 2 ~] [7 ~ ~ 5]>"
+      .add("<0 2 4 -2 1 0 3>/29"))
+    .slow(2)
+    .scale("D5:major:pentatonic")
+    .s("gm_glockenspiel")
+    .sometimesBy(.2, x => x.add(note(12)))
+    .degradeBy(.3)
+    .gain(perlin.range(3, 5).slow(8))      // original ran hot at 5 — keep level, let it breathe
+    .pan(rand.range(-0.6, 0.6))
+    .attack(0.1)
+    .decay(0.3)
+    .release(rand.range(0.4, 1.2))
+    .room(0.8)
+    .size(3)
+    .delay(0.25)
+    .delaytime("3/8")
+    .delayfeedback(0.25)
+    .lpf(rand.range(1200, 3500))
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // glock dust — pure random pentatonic, the old twinkle feel, never repeats
+  n(irand(8)).segment(8)
+    .scale("D6:major:pentatonic")
+    .s("gm_glockenspiel")
+    .degradeBy(.87)
+    .gain(rand.range(1, 2.2))
+    .pan(rand.range(-0.7, 0.7))
+    .attack(.05).release(rand.range(.5, 1.5))
+    .delay(.3).delaytime("3/8").delayfeedback(.3)
+    .lpf(rand.range(1500, 4000))
+    .room(.8).size(3)
+  ,
+
+  // ---- TEXTURES — same three, now drifting in and out on long cycles ----
   stack(
     s("gm_seashore")
       .loopAt(8)
-      .gain(.7)
-      .lpf(1500).hpf(400)
+      .gain(perlin.range(.45, .75).slow(17))
+      .lpf(perlin.range(1000, 1800).slow(13)).hpf(400)
+      .mask("<1 1 1 0 1 1 1 1 1 0 1>/7")
     ,
     s("gm_breath_noise")
       .loopAt(4)
-      .gain(.5)
+      .gain(perlin.range(.3, .6).slow(19))
       .lpf(1200).hpf(600)
       .pan(sine.range(.3, .7).slow(6))
       .degradeBy(.3)
+      .mask("<0 1 1 1 0 1 1 1 1 0 1 1 1>/13")
     ,
     s("gm_helicopter")
       .mask("<1 0 0 0 1 0 0 0>/4")
-      .degradeBy(.3)
-      .speed(.5)
-      .lpf(800)
-      .gain(.5)
+      .degradeBy(.45)                       // was .3 — rarer now, hits harder when it comes
+      .speed(rand.range(.45, .55))          // was fixed .5 — each pass slightly different
+      .lpf(perlin.range(600, 1000).slow(11))
+      .gain(rand.range(.4, .6))
+      .pan(sine.range(.35, .65).slow(21))
       .room(.3).size(2)
-    )
+  )
 )
 .late("[0 .005]*2")
 ._scope()
-
-/*
-
-    
-    pads
-        .anchor("G4").voicing()
-        .s("gm_vibraphone")
-        .clip(.7)
-        .release(.3)
-        .room(.4).size(2)
-        .delay(.2).delaytime("1").delayfeedback(.15)
-        .lpf(sine.range(600, 1200).slow(12))
-        .gain(sine.range(.1, .2).slow(10))
-        .degradeBy(.3)
- // SUB BASS - pulses with decay
-    pads.mode("root:d1").voicing()
-    .s("gm_synth_bass_1")
-    .clip(1.5).release(.4).lpf(1180)
-    .gain(sine.range(.15, .3).slow(12))
-    .room(.2).size(1)
-    ,
-
-
- ORGAN PAD - warm, uplifting
- pads.voicing().s("gm_drawbar_organ")
- .clip(.9)
- .release(.4)
- .room(.4).size(2)
- .lpf(sine.range(500, 1400).slow(16))
- .gain(sine.range(.15, .5).slow(4))
- .delay(.2).delaytime(.5).delayfeedback(.15)
-   ,
-
-   addVoicings('cookie', {
-   7: ['3M 7m 9M 12P 15P', '7m 10M 13M 16M 19P'],
-   '^7': ['3M 6M 9M 12P 14M', '7M 10M 13M 16M 19P'],
-   m7: ['8P 11P 14m 17m 19P', '5P 8P 11P 14m 17m'],
-   m7b5: ['3m 5d 8P 11P 14m', '5d 8P 11P 14m 17m'],
-   o7: ['3m 6M 9M 11A 15P'],
-   '7alt': ['3M 7m 10m 13m 15P'],
-   '7#11': ['7m 10m 13m 15P 17m'],
- }, ['C3', 'C6'])
- "<C^7 A7 Dm7 G7>".voicings('cookie').note()
- ,
-   // MELODY A - airy, uplifting
-   pads.n("[0 ~ 2 ~]*2")
-   .anchor("C5").voicing()
-   .s("gm_celesta")
-   .clip(.6)
-   .release(.2)
-   .room(.5).size(2)
-   .delay(.3).delaytime("1").delayfeedback(.2)
-   .lpf(1400)
-   .gain(sine.range(.1, .45).slow(6))
-   .degradeBy(.4)
-   ,
-   // MELODY B - counterpoint with breath
-   pads.offset(-1).n("[~ 3 ~ <1 4>](<3 5>,8)")
-   .anchor("G4").voicing()
-   .s("gm_vibraphone")
-   .clip(.7)
-   .release(.3)
-   .room(.4).size(2)
-   .delay(.2).delaytime("1").delayfeedback(.15)
-   .lpf(sine.range(600, 1800).slow(12))
-   .gain(sine.range(.1, .35).slow(10))
-   .degradeBy(.3)
-   ,
-   // SUB BASS - pulses with decay
-   pads.mode("root:d1").voicing()
-   .s("gm_synth_bass_1")
-   .clip(1.5).release(.4).lpf(180)
-   .gain(sine.range(.15, .3).slow(12))
-   .room(.2).size(1)
-   ,
-   // TEXTURE - ghost percussion
-   s("~ ~ ~ rim").bank('crate')
-   .room(.5).size(2).gain(.15)
-   .delay(.3).delaytime("1").delayfeedback(.2)
-   .mask("<0 0 0 1>/4")
-   .lpf(600)
-   */
-

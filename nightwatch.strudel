@@ -1,0 +1,94 @@
+// "nightwatch" — orbital station, night shift, Earth turning below
+// A minor, very slow. vibraphone thinks out loud, a beacon blinks.
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+
+setcps(.35) // 1 cycle ≈ 2.86s — night shift pace
+
+stack(
+
+  // ---- HULL — A+E pedal, deep and steady ----
+  note("<[a1,e2] [a1,e2] [f1,c2] [a1,e2] [a1,e2] [g1,d2] [a1,e2] [a1,e2]>/6")
+    .s("sine")
+    .attack(4).sustain(1).release(8)
+    .gain(.7)
+    .lpf(perlin.range(100, 260).slow(11))
+  ,
+
+  // slow sweep above the hull — air recyclers breathing
+  note("<[a2,e3] [a2,e3] [f2,c3] [a2,e3] [a2,e3] [g2,d3] [a2,e3] [a2,e3]>/6")
+    .s("gm_pad_sweep")
+    .attack(3.5).release(7)
+    .gain(perlin.range(.2, .45).slow(13))
+    .lpf(perlin.range(200, 600).slow(9))
+    .room(.7).size(6)
+  ,
+
+  // ---- PADS — 8 chords of A minor, dark but calm ----
+  note(`<
+    [a2,c3,e3,g3,b3] [f3,a3,c4,e4] [c3,e3,g3,b3] [g3,b3,d4,e4]
+    [a2,c3,e3,g3,b3] [d3,f3,a3,c4] [e3,g3,b3,d4] [f3,a3,c4,e4]
+  >/6`)
+    .s("gm_pad_halo")
+    .attack(3).release(6)
+    .jux(rev)
+    .gain(perlin.range(.2, .4).slow(7))
+    .lpf(perlin.range(350, 900).slow(19))
+    .room(.8).size(7)
+  ,
+
+  // ---- VIBRAPHONE — the one awake, thinking in slow phrases ----
+  n("<[0 ~ 2 ~] [4 ~ ~ 3] [~ 5 ~ 2] [4 ~ 0 ~] [~ 7 ~ 5] [2 ~ ~ ~]>"
+      .add("<0 2 -2 4 1 3 0>/29"))
+    .slow(3)
+    .scale("A3:minor:pentatonic")
+    .s("gm_vibraphone")
+    .sometimesBy(.2, x => x.add(note(12)))
+    .degradeBy(.3)
+    .gain(perlin.range(.45, .8).slow(8))
+    .attack(.03).release(2)
+    .pan(rand.range(.3, .7))
+    .delay(.35).delaytime(1).delayfeedback(.35)
+    .lpf(2200)
+    .room(.7).size(5)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- BEACON — one high E, blinking on the far antenna ----
+  // rare, regular-ish, never quite when you expect it
+  note("e6")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~]>/2")
+    .s("gm_glockenspiel")
+    .degradeBy(.25)
+    .gain(rand.range(.2, .4))
+    .attack(.01).release(3)
+    .pan(sine.range(.2, .8).slow(27))
+    .delay(.5).delaytime("3/4").delayfeedback(.5)
+    .lpf(3500)
+    .room(.9).size(9)
+    .mask("<1 1 0 1 1 1 0 1 1 1 0 1 1>/13")
+  ,
+
+  // ---- CHOIR — Earth-glow through the window, barely there ----
+  note("<[e4,b4] [a4,e5] [g4,c5] [d4,b4] [e4,b4] [f4,c5] [g4,d5] [c5,e5]>/6")
+    .s("gm_choir_aahs")
+    .attack(2.5).release(5)
+    .lpf(sine.range(400, 1000).slow(23))
+    .gain(.3)
+    .mask("<0 1 1 1 0 1 1 0 1 1 1>/11")
+    .pan(sine.range(.35, .65).slow(17))
+    .room(.8).size(7)
+  ,
+
+  // ---- INSTRUMENT DUST — console lights, random pentatonic ----
+  n(irand(8)).segment(8)
+    .scale("A5:minor:pentatonic")
+    .s("gm_fx_crystal")
+    .degradeBy(.87)
+    .gain(rand.range(.12, .3))
+    .pan(rand)
+    .attack(.02).release(2)
+    .delay(.4).delaytime("3/8").delayfeedback(.45)
+    .lpf(rand.range(1800, 4500))
+    .room(.9).size(8)
+)
+._scope()

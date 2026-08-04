@@ -1,0 +1,107 @@
+// "coalbarge" — river barge at night, engine slow, load heavy
+// G minor, french horn over the water, harmonica in the wheelhouse
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// weight sits low — the cargo does the talking
+
+setcps(.36) // 1 cycle ≈ 2.8s — upstream against the current
+
+stack(
+
+  // ---- HOLD — G+D pedal, engine and hull as one note ----
+  note("<[g0,d1] [g0,d1] [eb1,bb1] [g0,d1] [g0,d1] [f1,c2] [g0,d1] [c1,g1]>/6")
+    .s("sine")
+    .attack(4).sustain(1).release(8)
+    .gain(.72)
+    .lpf(perlin.range(80, 220).slow(11))
+  ,
+
+  // horn drone — the river answering back
+  note("<[g1,d2] [g1,d2] [eb2,bb2] [g1,d2] [g1,d2] [f2,c3] [g1,d2] [c2,g2]>/6")
+    .s("gm_french_horn")
+    .attack(3.5).release(7)
+    .gain(perlin.range(.12, .28).slow(13))
+    .lpf(perlin.range(180, 460).slow(9))
+    .room(.7).size(6)
+  ,
+
+  // ---- PADS — 8 chords of G minor, slow water under a low sky ----
+  note(`<
+    [g2,bb2,d3,f3,a3] [eb2,g2,bb2,d3] [c2,eb2,g2,bb2] [d2,f2,a2,bb2]
+    [g2,bb2,d3,f3,a3] [f2,a2,c3,eb3] [bb1,d2,f2,a2] [eb2,g2,bb2,d3]
+  >/6`)
+    .s("gm_pad_bowed")
+    .attack(3).release(6)
+    .jux(rev)
+    .gain(perlin.range(.22, .42).slow(7))
+    .lpf(perlin.range(260, 640).slow(19))
+    .room(.7).size(6)
+  ,
+
+  // ---- FRENCH HORN — a phrase now and then, carried downriver ----
+  n("<[0 ~ 2 ~] [~ 3 ~ 2] [4 ~ ~ 0] [~ ~ 2 ~] [5 ~ 3 ~] [~ 0 ~ ~]>"
+      .add("<0 2 -2 3 1 0>/29"))
+    .slow(4)
+    .scale("G2:minor:pentatonic")
+    .s("gm_french_horn")
+    .degradeBy(.35)
+    .attack(.6).sustain(.7).release(2.5)
+    .gain(perlin.range(.3, .55).slow(8))
+    .pan(rand.range(.35, .6))
+    .lpf(900)
+    .room(.7).size(6)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- HARMONICA — the pilot, half a tune between bends ----
+  n("<[~ 0 ~ 2] [3 ~ ~ ~] [~ ~ 4 2] [~ 0 ~ ~] [~ ~ 5 ~] [3 ~ ~ 0]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(3)
+    .scale("G3:minor:pentatonic")
+    .s("gm_harmonica")
+    .degradeBy(.45)
+    .attack(.15).sustain(.7).release(1.5)
+    .gain(perlin.range(.18, .35).slow(10))
+    .pan(rand.range(.55, .75)) // wheelhouse is aft
+    .lpf(1300)
+    .room(.5).size(3)
+    .mask("<1 1 0 1 1 1 1 0 1 1 1 0 1>/13")
+  ,
+
+  // ---- PISTONS — pizzicato low, the engine's uneven heart ----
+  note("<[g1] [~] [d2] [~] [~] [bb1] [~] [f2] [~] [~] [c2] [~]>/3")
+    .s("gm_pizzicato_strings")
+    .degradeBy(.35)
+    .gain(rand.range(.2, .38))
+    .attack(.01).release(.8)
+    .pan(rand.range(.35, .65))
+    .lpf(650)
+    .room(.5).size(4)
+    .mask("<1 0 1 1 1 0 1>/7")
+  ,
+
+  // ---- FOGHORN — another vessel, far downstream ----
+  note("<g1 d2>/8")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ x ~] [~ ~ ~ ~]>/3")
+    .s("gm_blown_bottle")
+    .degradeBy(.4)
+    .attack(.8).sustain(.8).release(3)
+    .gain(rand.range(.12, .25))
+    .pan(sine.range(.15, .4).slow(29))
+    .lpf(500)
+    .room(.9).size(9)
+    .mask("<1 1 0 1 1 0 1 1 1 0 1>/11")
+  ,
+
+  // ---- COAL SHIFT — marimba low, the load settling ----
+  n(irand(8)).segment(8)
+    .scale("G3:minor:pentatonic")
+    .s("gm_marimba")
+    .degradeBy(.9)
+    .gain(rand.range(.06, .16))
+    .pan(rand.range(.3, .7))
+    .attack(.02).release(1.4)
+    .delay(.3).delaytime("3/8").delayfeedback(.3)
+    .lpf(rand.range(600, 1300))
+    .room(.6).size(5)
+)
+._scope()

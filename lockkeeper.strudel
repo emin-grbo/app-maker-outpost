@@ -1,0 +1,111 @@
+// "lockkeeper" — canal lock house before dawn, mist on still water
+// B minor, patient. accordion hums to itself, harp answers from the bank,
+// gates drip, village bell somewhere behind the fog.
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// (water lapping the gates is yours to add)
+
+setcps(.36) // 1 cycle ≈ 2.8s — first barge won't come for hours
+
+stack(
+
+  // ---- CANAL FLOOR — B+F# pedal, black water holding still ----
+  note("<[b1,f#2] [b1,f#2] [g1,d2] [b1,f#2] [b1,f#2] [a1,e2] [b1,f#2] [e1,b1]>/6")
+    .s("sine")
+    .attack(4).sustain(1).release(8)
+    .gain(.68)
+    .lpf(perlin.range(100, 270).slow(11))
+  ,
+
+  // accordion drone — the keeper humming over his tea
+  note("<[b2,f#3] [b2,f#3] [g2,d3] [b2,f#3] [b2,f#3] [a2,e3] [b2,f#3] [e2,b2]>/6")
+    .s("gm_accordion")
+    .attack(3).release(6)
+    .gain(perlin.range(.15, .35).slow(13))
+    .lpf(perlin.range(220, 580).slow(9))
+    .room(.5).size(3) // low kitchen ceiling
+  ,
+
+  // ---- PADS — 8 chords of B minor, mist thickening and thinning ----
+  note(`<
+    [b2,d3,f#3,a3,c#4] [g3,b3,d4,f#4] [d3,f#3,a3,c#4] [a3,c#4,e4,f#4]
+    [b2,d3,f#3,a3,c#4] [e3,g3,b3,d4] [f#3,a3,c#4,e4] [g3,b3,d4,f#4]
+  >/6`)
+    .s("gm_pad_sweep")
+    .attack(3).release(6)
+    .jux(rev)
+    .gain(perlin.range(.2, .42).slow(7))
+    .lpf(perlin.range(320, 850).slow(19))
+    .room(.7).size(6)
+  ,
+
+  // ---- ACCORDION MELODY — old tune, half remembered ----
+  n("<[0 ~ 2 ~] [~ 4 ~ 3] [5 ~ ~ 2] [~ 0 ~ ~] [4 ~ 7 ~] [~ 2 ~ 0]>"
+      .add("<0 2 -2 3 1 0 4>/29"))
+    .slow(3)
+    .scale("B3:minor:pentatonic")
+    .s("gm_accordion")
+    .sometimesBy(.15, x => x.add(note(12)))
+    .degradeBy(.35)
+    .gain(perlin.range(.4, .7).slow(8))
+    .attack(.15).sustain(.7).release(1.5)
+    .pan(rand.range(.35, .6))
+    .delay(.2).delaytime(1).delayfeedback(.2)
+    .lpf(2000)
+    .room(.5).size(3)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- HARP — answers from the towpath across the water ----
+  n("<[~ 0 ~ 2] [4 ~ ~ ~] [~ ~ 5 3] [~ 2 ~ 0] [~ ~ 7 ~] [4 ~ ~ ~]>"
+      .add("<0 -2 2 1 3 0>/31"))
+    .slow(2)
+    .scale("B3:minor:pentatonic")
+    .s("gm_orchestral_harp")
+    .degradeBy(.35)
+    .gain(perlin.range(.3, .5).slow(10))
+    .attack(.01).release(1.8)
+    .pan(rand.range(.55, .8)) // other bank
+    .delay(.3).delaytime(.75).delayfeedback(.3)
+    .lpf(1700)
+    .room(.7).size(6)
+    .mask("<1 1 0 1 1 1 1 0 1 1 1 0 1>/13")
+  ,
+
+  // ---- GATE DRIPS — low pizzicato, water off the lock beams ----
+  note("<[b2] [~] [~] [f#2] [~] [d3] [~] [~] [a2] [~] [e3] [~]>/3")
+    .s("gm_pizzicato_strings")
+    .degradeBy(.4)
+    .gain(rand.range(.2, .4))
+    .attack(.01).release(.8)
+    .pan(rand.range(.3, .7))
+    .lpf(1100)
+    .room(.6).size(5)
+    .mask("<1 0 1 1 1 0 1>/7")
+  ,
+
+  // ---- VILLAGE BELL — behind the fog, counting nothing in particular ----
+  note("<b3 f#4>/8")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ x ~] [~ ~ ~ ~]>/3")
+    .s("gm_tubular_bells")
+    .degradeBy(.4)
+    .gain(rand.range(.08, .18)) // far off
+    .attack(.01).release(4)
+    .pan(sine.range(.15, .4).slow(29)) // somewhere up the lane
+    .lpf(950)
+    .room(.9).size(9)
+    .mask("<1 1 0 1 1 0 1 1 1 0 1>/11")
+  ,
+
+  // ---- MIST FLECKS — celesta kept low and dim, more felt than heard ----
+  n(irand(8)).segment(8)
+    .scale("B4:minor:pentatonic")
+    .s("gm_celesta")
+    .degradeBy(.9)
+    .gain(rand.range(.06, .16))
+    .pan(rand)
+    .attack(.02).release(2)
+    .delay(.35).delaytime("3/8").delayfeedback(.35)
+    .lpf(rand.range(800, 1600))
+    .room(.8).size(7)
+)
+._scope()

@@ -1,0 +1,99 @@
+// "starfield" — alpine ridge, clear night, whole sky out
+// F# minor, slowest of the set. celesta names the stars one by one.
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+
+setcps(.32) // 1 cycle ≈ 3.1s — glacial
+
+stack(
+
+  // ---- MOUNTAIN — F#+C# pedal, black rock under everything ----
+  note("<[f#1,c#2] [f#1,c#2] [d1,a1] [f#1,c#2] [f#1,c#2] [e1,b1] [f#1,c#2] [a1,e2]>/6")
+    .s("sine")
+    .attack(5).sustain(1).release(9)
+    .gain(.7)
+    .lpf(perlin.range(90, 240).slow(11))
+  ,
+
+  // glass pad — cold clear air, metallic edge ----
+  note("<[f#2,c#3] [f#2,c#3] [d2,a2] [f#2,c#3] [f#2,c#3] [e2,b2] [f#2,c#3] [a2,e3]>/6")
+    .s("gm_pad_metallic")
+    .attack(4).release(8)
+    .gain(perlin.range(.15, .35).slow(13))
+    .lpf(perlin.range(200, 550).slow(9))
+    .room(.8).size(8)
+  ,
+
+  // ---- PADS — 8 chords of F# minor, wide and thin like altitude ----
+  note(`<
+    [f#3,a3,c#4,e4] [d3,f#3,a3,c#4] [a3,c#4,e4,g#4] [e3,g#3,b3,f#4]
+    [f#3,a3,c#4,e4] [b2,d3,f#3,a3] [c#3,e3,g#3,b3] [d3,f#3,a3,c#4]
+  >/6`)
+    .s("gm_pad_halo")
+    .attack(3.5).release(7)
+    .jux(rev)
+    .gain(perlin.range(.18, .38).slow(7))
+    .lpf(perlin.range(300, 850).slow(19))
+    .room(.9).size(8)
+  ,
+
+  // ---- CELESTA — naming stars, one small phrase at a time ----
+  n("<[0 ~ ~ 2] [~ 4 ~ ~] [3 ~ 5 ~] [~ ~ 2 ~] [7 ~ ~ 4] [~ 5 ~ ~]>"
+      .add("<0 2 -2 4 1 0 3>/29"))
+    .slow(3)
+    .scale("F#4:minor:pentatonic")
+    .s("gm_celesta")
+    .sometimesBy(.25, x => x.add(note(12)))
+    .degradeBy(.35)
+    .gain(perlin.range(.45, .8).slow(8))
+    .attack(.01).release(2.5)
+    .pan(rand.range(.25, .75))
+    .delay(.4).delaytime(1).delayfeedback(.4)
+    .lpf(3000)
+    .room(.8).size(7)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- MUSIC BOX — a memory answering, lower and rarer ----
+  n("<[~ 0 ~ ~] [~ ~ 2 ~] [1 ~ ~ 3] [~ ~ ~ ~]>"
+      .add("<0 -2 2 0 1>/31"))
+    .slow(4)
+    .scale("F#3:minor:pentatonic")
+    .s("gm_music_box")
+    .degradeBy(.4)
+    .gain(.45)
+    .pan(rand.range(.3, .7))
+    .delay(.35).delaytime(1.5).delayfeedback(.35)
+    .lpf(2200)
+    .room(.7).size(6)
+    .mask("<1 0 1 1 1 0 1>/7")
+  ,
+
+  // ---- METEOR — one falling note, minutes apart ----
+  // a high star slides down an octave and burns out
+  note("<c#7 f#6 e7 a6>/16")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~]>/4")
+    .s("gm_fx_crystal")
+    .degradeBy(.3)
+    .gain(rand.range(.15, .3))
+    .attack(.01).release(5)
+    .speed(.9) // slight downward smear
+    .pan(rand)
+    .delay(.5).delaytime("3/4").delayfeedback(.55)
+    .lpf(5000)
+    .room(.95).size(9)
+    .mask("<1 1 0 1 1 1 0 1 1 1 0 1 1>/13")
+  ,
+
+  // ---- STARS — the field itself, random pentatonic, very faint ----
+  n(irand(10)).segment(8)
+    .scale("F#5:minor:pentatonic")
+    .s("gm_glockenspiel")
+    .degradeBy(.88)
+    .gain(rand.range(.08, .22))
+    .pan(rand)
+    .attack(.01).release(2.5)
+    .delay(.4).delaytime("5/8").delayfeedback(.45)
+    .lpf(rand.range(2000, 5000))
+    .room(.9).size(9)
+)
+._scope()

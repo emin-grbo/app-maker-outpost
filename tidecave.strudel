@@ -1,0 +1,108 @@
+// "tidecave" — sea cave at low tide, green light through the entrance
+// C# minor, koto notes off wet rock, bottle-wind in the blowhole
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// dark water acoustics — long tails, highs soaked up by the walls
+
+setcps(.33) // 1 cycle ≈ 3s — the sea breathing in its sleep
+
+stack(
+
+  // ---- SWELL — C#+G# pedal, the weight outside the entrance ----
+  note("<[c#1,g#1] [c#1,g#1] [a0,e1] [c#1,g#1] [c#1,g#1] [b0,f#1] [c#1,g#1] [f#0,c#1]>/6")
+    .s("sine")
+    .attack(5).sustain(1).release(9)
+    .gain(.72)
+    .lpf(perlin.range(80, 220).slow(11))
+  ,
+
+  // bowed pad — light wobbling on the ceiling ----
+  note("<[c#2,g#2] [c#2,g#2] [a1,e2] [c#2,g#2] [c#2,g#2] [b1,f#2] [c#2,g#2] [f#1,c#2]>/6")
+    .s("gm_pad_bowed")
+    .attack(4).release(8)
+    .gain(perlin.range(.13, .28).slow(13))
+    .lpf(perlin.range(200, 480).slow(9))
+    .room(.9).size(9)
+  ,
+
+  // ---- PADS — 8 chords of C# minor, rock shelf by rock shelf ----
+  note(`<
+    [c#2,e2,g#2,b2,d#3] [a1,c#2,e2,g#2] [f#1,a1,c#2,e2] [g#1,b1,d#2,e2]
+    [c#2,e2,g#2,b2,d#3] [b1,d#2,f#2,a2] [e2,g#2,b2,d#3] [a1,c#2,e2,g#2]
+  >/6`)
+    .s("gm_pad_sweep")
+    .attack(3.5).release(7)
+    .jux(rev)
+    .gain(perlin.range(.2, .38).slow(7))
+    .lpf(perlin.range(240, 560).slow(19))
+    .room(.9).size(9)
+  ,
+
+  // ---- KOTO — drops counted off the low ceiling ----
+  n("<[0 ~ 2 ~] [~ 3 ~ 2] [4 ~ ~ 0] [~ ~ 2 ~] [5 ~ 3 ~] [~ 0 ~ ~]>"
+      .add("<0 2 -2 3 1 0>/29"))
+    .slow(3)
+    .scale("C#3:minor:pentatonic")
+    .s("gm_koto")
+    .degradeBy(.35)
+    .gain(perlin.range(.35, .6).slow(8))
+    .attack(.01).release(1.8)
+    .pan(rand.range(.35, .6))
+    .delay(.4).delaytime(1.5).delayfeedback(.4) // wet rock answers
+    .lpf(1400)
+    .room(.9).size(9)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- BLOWHOLE — bottle-wind when the swell lines up ----
+  n("<[~ 0 ~ ~] [~ ~ 2 0] [~ ~ ~ ~] [3 ~ ~ ~] [~ 0 ~ ~] [~ ~ ~ ~]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(4)
+    .scale("C#3:minor:pentatonic")
+    .s("gm_blown_bottle")
+    .degradeBy(.45)
+    .attack(.8).sustain(.6).release(2.5)
+    .gain(perlin.range(.15, .32).slow(10))
+    .pan(sine.range(.25, .75).slow(23))
+    .lpf(1000)
+    .room(.9).size(9)
+    .mask("<1 0 1 1 0 1 1 1 0 1 1 0 1>/13")
+  ,
+
+  // ---- KELP PULL — fretless bass, tide working the entrance ----
+  note("<[c#2] [~] [~] [g#1] [~] [e2] [~] [~] [b1] [~] [f#1] [~]>/3")
+    .s("gm_fretless_bass")
+    .attack(1).sustain(.7).release(2.5)
+    .degradeBy(.35)
+    .gain(rand.range(.18, .35))
+    .pan(rand.range(.35, .65))
+    .lpf(500)
+    .room(.8).size(8)
+    .mask("<1 0 1 1 1 0 1>/7")
+  ,
+
+  // ---- BUOY — outside, past the entrance, when the wind turns ----
+  note("<c#3 g#2>/8")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ x ~] [~ ~ ~ ~]>/3")
+    .s("gm_tubular_bells")
+    .degradeBy(.5)
+    .gain(rand.range(.07, .15))
+    .attack(.01).release(4)
+    .pan(sine.range(.6, .85).slow(29))
+    .lpf(700)
+    .room(.95).size(9)
+    .mask("<1 1 0 1 1 0 1 1 1 0 1>/11")
+  ,
+
+  // ---- DRIP SHINE — marimba flecks on black water, dim ----
+  n(irand(8)).segment(8)
+    .scale("C#3:minor:pentatonic")
+    .s("gm_marimba")
+    .degradeBy(.9)
+    .gain(rand.range(.05, .13))
+    .pan(rand.range(.3, .7))
+    .attack(.02).release(1.6)
+    .delay(.4).delaytime("3/8").delayfeedback(.4)
+    .lpf(rand.range(500, 1200))
+    .room(.9).size(9)
+)
+._scope()

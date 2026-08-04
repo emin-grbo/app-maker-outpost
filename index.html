@@ -27,12 +27,58 @@
       text-transform: lowercase;
       margin-bottom: 0.5rem;
       color: #f0f0f0;
+      transition: opacity 0.25s ease;
     }
     .subtitle {
       font-size: 0.75rem;
       color: #666;
       letter-spacing: 0.2em;
       margin-bottom: 3rem;
+      min-height: 1.2em;
+      max-width: 32rem;
+      margin-left: auto;
+      margin-right: auto;
+      transition: opacity 0.25s ease;
+    }
+    .container.switching h1,
+    .container.switching .subtitle {
+      opacity: 0.25;
+    }
+    .transport {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.75rem;
+      margin-bottom: 2rem;
+    }
+    .skip-btn {
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease;
+    }
+    .skip-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: #555;
+      transition: fill 0.3s;
+    }
+    .skip-btn:hover svg { fill: #aaa; }
+    .skip-btn:hover { background: rgba(255,255,255,0.03); }
+    .skip-btn:disabled { cursor: default; }
+    .skip-btn:disabled svg { fill: #2a2a2a; }
+    .skip-btn:disabled:hover { background: transparent; }
+    .track-count {
+      font-size: 0.65rem;
+      color: #3a3a3a;
+      letter-spacing: 0.25em;
+      margin-top: 0.75rem;
     }
     #play-btn {
       width: 80px;
@@ -44,7 +90,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 2rem;
+      flex-shrink: 0;
       transition: all 0.3s ease;
     }
     #play-btn:hover {
@@ -121,14 +167,29 @@
 <body>
   <div class="bg-glow" id="bg-glow"></div>
   <div class="container">
-    <h1>bunker fog</h1>
-    <p class="subtitle">generative ambient</p>
-    <button id="play-btn" aria-label="Play">
-      <svg id="play-icon" viewBox="0 0 24 24">
-        <polygon points="6,4 20,12 6,20"/>
-      </svg>
-    </button>
+    <h1 id="song-title">bunker fog</h1>
+    <p class="subtitle" id="song-blurb">generative ambient</p>
+    <div class="transport">
+      <button id="prev-btn" class="skip-btn" aria-label="Previous track">
+        <svg viewBox="0 0 24 24">
+          <polygon points="18,5 8,12 18,19"/>
+          <rect x="5" y="5" width="2" height="14"/>
+        </svg>
+      </button>
+      <button id="play-btn" aria-label="Play">
+        <svg id="play-icon" viewBox="0 0 24 24">
+          <polygon points="6,4 20,12 6,20"/>
+        </svg>
+      </button>
+      <button id="next-btn" class="skip-btn" aria-label="Next track">
+        <svg viewBox="0 0 24 24">
+          <polygon points="6,5 16,12 6,19"/>
+          <rect x="17" y="5" width="2" height="14"/>
+        </svg>
+      </button>
+    </div>
     <p class="status" id="status">click to listen</p>
+    <p class="track-count" id="track-count"></p>
   </div>
 
   <div id="strudel-host"></div>
@@ -215,23 +276,84 @@
     let repl = null;
     let currentAudioCtx = null;
     const trackedContexts = new WeakSet();
+    const container = document.querySelector('.container');
     const btn = document.getElementById('play-btn');
     const icon = document.getElementById('play-icon');
     const status = document.getElementById('status');
     const glow = document.getElementById('bg-glow');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const titleEl = document.getElementById('song-title');
+    const blurbEl = document.getElementById('song-blurb');
+    const countEl = document.getElementById('track-count');
 
     const playPath = '<polygon points="6,4 20,12 6,20"/>';
     const pausePath = '<rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/>';
 
-    async function setupRepl() {
-      if (repl) return;
-      log('Fetching bunkerfog.strudel...');
-      const response = await fetch(`bunkerfog.strudel?v=${Date.now()}`, { cache: 'no-store' });
+    // -----------------------------------------------------------------------
+    // Track list. songs.json is generated from each .strudel file's header
+    // comment (title + one-line scene blurb). Falls back to bunkerfog alone so
+    // the page still plays if the manifest is missing.
+    // -----------------------------------------------------------------------
+    const FALLBACK_SONGS = [
+      { file: 'bunkerfog.strudel', title: 'bunker fog', blurb: 'generative ambient' },
+    ];
+    let songs = FALLBACK_SONGS;
+    let currentIndex = 0;
+    let loadedIndex = -1;   // which track's code the REPL currently holds
+    let switchToken = 0;    // guards against out-of-order track switches
+
+    async function loadManifest() {
+      try {
+        const res = await fetch(`songs.json?v=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const list = await res.json();
+        if (!Array.isArray(list) || !list.length) throw new Error('manifest empty');
+        songs = list;
+        const start = songs.findIndex((s) => s.file === 'bunkerfog.strudel');
+        currentIndex = start === -1 ? 0 : start;
+        log(`Manifest loaded (${songs.length} tracks)`);
+      } catch (e) {
+        log(`songs.json unavailable (${e.message}) — using fallback`, 'warn');
+      }
+      renderSong();
+    }
+
+    function renderSong() {
+      const song = songs[currentIndex];
+      titleEl.textContent = song.title;
+      blurbEl.textContent = song.blurb || 'generative ambient';
+      countEl.textContent = songs.length > 1
+        ? `${String(currentIndex + 1).padStart(2, '0')} / ${String(songs.length).padStart(2, '0')}`
+        : '';
+      document.title = song.title;
+      const single = songs.length < 2;
+      prevBtn.disabled = single;
+      nextBtn.disabled = single;
+      if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
+        try {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: song.title,
+            artist: 'generative ambient',
+          });
+        } catch (e) { /* metadata refresh is best-effort */ }
+      }
+    }
+
+    async function fetchCode(file) {
+      const response = await fetch(`${file}?v=${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) {
         log(`Fetch failed: ${response.status} ${response.statusText}`, 'err');
         throw new Error(`Fetch failed: ${response.status}`);
       }
-      const code = await response.text();
+      return response.text();
+    }
+
+    async function setupRepl() {
+      if (repl) return;
+      const song = songs[currentIndex];
+      log(`Fetching ${song.file}...`);
+      const code = await fetchCode(song.file);
       log(`Code loaded (${code.length} chars)`);
 
       log('Creating strudel-editor...');
@@ -249,7 +371,53 @@
         };
         check();
       });
+      loadedIndex = currentIndex;
       log('Strudel REPL ready');
+    }
+
+    // Push a track's code into an already-built REPL.
+    async function swapCode(index) {
+      const song = songs[index];
+      log(`Loading ${song.file}...`);
+      const code = await fetchCode(song.file);
+      if (typeof repl.editor.setCode === 'function') {
+        repl.editor.setCode(code);
+      } else {
+        // Older builds expose the CodeMirror doc directly
+        repl.editor.repl?.setCode?.(code);
+        repl.setAttribute('code', code);
+      }
+      loadedIndex = index;
+      log(`Code swapped (${code.length} chars)`);
+    }
+
+    async function selectSong(index) {
+      const next = (index + songs.length) % songs.length;
+      if (next === currentIndex) return;
+      currentIndex = next;
+      const token = ++switchToken;
+      renderSong();
+
+      if (!repl) return;   // nothing built yet — playAudio() will pick it up
+
+      container.classList.add('switching');
+      const wasPlaying = isPlaying;
+      if (wasPlaying) status.textContent = 'switching...';
+      try {
+        await swapCode(currentIndex);
+        if (token !== switchToken) return;   // superseded by a newer skip
+        if (wasPlaying) {
+          await repl.editor.evaluate();
+          await resumeAllAudioContexts();
+          status.textContent = 'playing';
+          log('Switched track while playing');
+        }
+      } catch (e) {
+        log(`Track switch failed: ${e.message}`, 'err');
+        if (token === switchToken) status.textContent = 'error - see debug below';
+      } finally {
+        if (token === switchToken) container.classList.remove('switching');
+      }
     }
 
     // Attach a one-time state listener so a suspended context auto-resumes while playing
@@ -323,6 +491,7 @@
       try {
         status.textContent = 'loading...';
         await setupRepl();
+        if (loadedIndex !== currentIndex) await swapCode(currentIndex);
 
         log('Starting playback...');
         // Use start() which handles AudioContext creation + resume internally
@@ -359,12 +528,14 @@
         if ('mediaSession' in navigator) {
           try {
             navigator.mediaSession.metadata = new MediaMetadata({
-              title: 'bunker fog',
+              title: songs[currentIndex].title,
               artist: 'generative ambient',
             });
             navigator.mediaSession.playbackState = 'playing';
             navigator.mediaSession.setActionHandler('play', () => playAudio());
             navigator.mediaSession.setActionHandler('pause', () => stopAudio());
+            navigator.mediaSession.setActionHandler('previoustrack', () => selectSong(currentIndex - 1));
+            navigator.mediaSession.setActionHandler('nexttrack', () => selectSong(currentIndex + 1));
             log('MediaSession registered');
           } catch (e) {
             log(`MediaSession setup failed: ${e.message}`, 'warn');
@@ -394,6 +565,15 @@
     btn.addEventListener('click', () => {
       if (isPlaying) stopAudio(); else playAudio();
     });
+    prevBtn.addEventListener('click', () => selectSong(currentIndex - 1));
+    nextBtn.addEventListener('click', () => selectSong(currentIndex + 1));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.closest('#strudel-host')) return;   // don't hijack the editor
+      if (e.key === 'ArrowRight') { e.preventDefault(); selectSong(currentIndex + 1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); selectSong(currentIndex - 1); }
+      else if (e.key === ' ') { e.preventDefault(); isPlaying ? stopAudio() : playAudio(); }
+    });
 
     // Safari suspends background tabs — resume when tab/window becomes active again
     document.addEventListener('visibilitychange', async () => {
@@ -408,6 +588,8 @@
         await resumeAllAudioContexts();
       }
     });
+
+    loadManifest();
   </script>
 </body>
 </html>

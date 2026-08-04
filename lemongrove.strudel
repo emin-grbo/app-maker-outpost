@@ -1,0 +1,109 @@
+// "lemongrove" — mediterranean terrace, morning, lemons still cool
+// A major, nylon guitar and accordion trading phrases over coffee
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// sun climbing but gentle — brightness in the harmony, not the register
+
+setcps(.41) // 1 cycle ≈ 2.4s — second coffee pace
+
+stack(
+
+  // ---- TERRACE — A+E pedal, stone still holding night's cool ----
+  note("<[a1,e2] [a1,e2] [d2,a2] [a1,e2] [a1,e2] [f#2,c#3] [a1,e2] [e2,b2]>/6")
+    .s("sine")
+    .attack(3).sustain(1).release(6)
+    .gain(.65)
+    .lpf(perlin.range(110, 280).slow(11))
+  ,
+
+  // organ warmth — light spreading down the hillside
+  note("<[a2,e3] [a2,e3] [d3,a3] [a2,e3] [a2,e3] [f#3,c#4] [a2,e3] [e3,b3]>/6")
+    .s("gm_drawbar_organ")
+    .attack(2.5).release(5)
+    .gain(perlin.range(.1, .24).slow(13))
+    .lpf(perlin.range(280, 620).slow(9))
+    .room(.5).size(4)
+  ,
+
+  // ---- PADS — 8 chords of A major, citrus and dust ----
+  note(`<
+    [a2,c#3,e3,g#3,b3] [d3,f#3,a3,c#4] [f#3,a3,c#4,e4] [e3,g#3,b3,d4]
+    [a2,c#3,e3,g#3,b3] [b2,d3,f#3,a3] [c#3,e3,g#3,b3] [d3,f#3,a3,b3]
+  >/6`)
+    .s("gm_pad_warm")
+    .attack(2.5).release(5)
+    .jux(rev)
+    .gain(perlin.range(.2, .4).slow(7))
+    .lpf(perlin.range(320, 780).slow(19))
+    .room(.6).size(5)
+  ,
+
+  // ---- NYLON GUITAR — the grove keeper's morning round ----
+  n("<[0 ~ 2 ~] [~ 4 ~ 3] [5 ~ ~ 2] [~ 0 ~ ~] [4 ~ 7 ~] [~ 2 ~ 0]>"
+      .add("<0 2 -2 3 1 0 4>/29"))
+    .slow(2)
+    .scale("A3:major:pentatonic")
+    .s("gm_acoustic_guitar_nylon")
+    .sometimesBy(.15, x => x.add(note(12)))
+    .degradeBy(.3)
+    .gain(perlin.range(.45, .7).slow(8))
+    .attack(.02).release(1.3)
+    .pan(rand.range(.35, .6))
+    .delay(.2).delaytime(.75).delayfeedback(.2)
+    .lpf(1900)
+    .room(.5).size(4)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- ACCORDION — answers from the kitchen window ----
+  n("<[~ 0 ~ 2] [4 ~ ~ ~] [~ ~ 5 3] [~ 2 ~ 0] [~ ~ 4 ~] [2 ~ ~ ~]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(3)
+    .scale("A3:major:pentatonic")
+    .s("gm_accordion")
+    .degradeBy(.4)
+    .attack(.15).sustain(.7).release(1.5)
+    .gain(perlin.range(.2, .38).slow(10))
+    .pan(rand.range(.55, .78))
+    .lpf(1500)
+    .room(.5).size(3)
+    .mask("<1 1 0 1 1 1 1 0 1 1 1 0 1>/13")
+  ,
+
+  // ---- WELL ROPE — pizzicato low, bucket down and up ----
+  note("<[a1] [~] [e2] [~] [f#2] [~] [d2] [~] [e2] [~] [b1] [~]>/3")
+    .s("gm_pizzicato_strings")
+    .degradeBy(.35)
+    .gain(rand.range(.2, .38))
+    .attack(.01).release(.9)
+    .pan(rand.range(.35, .65))
+    .lpf(750)
+    .room(.5).size(4)
+    .mask("<1 0 1 1 1 0 1>/7")
+  ,
+
+  // ---- CHAPEL BELL — the village below, counting nine ----
+  note("<a3 e3>/8")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ x ~] [~ ~ ~ ~]>/3")
+    .s("gm_tubular_bells")
+    .degradeBy(.4)
+    .gain(rand.range(.08, .18))
+    .attack(.01).release(4)
+    .pan(sine.range(.15, .4).slow(29))
+    .lpf(900)
+    .room(.85).size(8)
+    .mask("<1 1 0 1 1 0 1 1 1 0 1>/11")
+  ,
+
+  // ---- LEAF SHINE — celesta flecks, kept low and dim ----
+  n(irand(8)).segment(8)
+    .scale("A4:major:pentatonic")
+    .s("gm_celesta")
+    .degradeBy(.9)
+    .gain(rand.range(.05, .14))
+    .pan(rand.range(.3, .7))
+    .attack(.02).release(1.6)
+    .delay(.25).delaytime("3/8").delayfeedback(.3)
+    .lpf(rand.range(700, 1500))
+    .room(.6).size(5)
+)
+._scope()

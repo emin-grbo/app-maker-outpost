@@ -1,0 +1,97 @@
+// "relayzero" — relay station on a red desert planet, both moons up
+// G# minor, half synth half instrument — machines and the person minding them
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// (static and comms chatter are yours to add)
+
+setcps(.34)
+
+stack(
+
+  // ---- BEDPLATE — G#+D# pedal, generators three floors down ----
+  note("<[g#1,d#2] [g#1,d#2] [e1,b1] [g#1,d#2] [g#1,d#2] [f#1,c#2] [g#1,d#2] [c#2,g#2]>/6")
+    .s("sine")
+    .attack(4).sustain(1).release(8)
+    .gain(.7)
+    .lpf(perlin.range(90, 230).slow(11))
+  ,
+
+  // ---- SAW PADS — thin atmosphere over red rock ----
+  note(`<
+    [g#2,b2,d#3,f#3] [e3,g#3,b3,d#4] [c#3,e3,g#3,b3] [f#3,a#3,c#4,e4]
+    [g#2,b2,d#3,f#3] [b2,d#3,f#3,a#3] [e3,g#3,b3] [c#3,e3,g#3]
+  >/6`)
+    .s("sawtooth")
+    .attack(3).release(6)
+    .jux(rev)
+    .gain(perlin.range(.1, .22).slow(7))
+    .lpf(perlin.range(250, 750).slow(17))
+    .resonance(6)
+    .room(.8).size(7)
+  ,
+
+  // moonlight pad — two moons, two colors of pale
+  note("<[d#4,g#4] [e4,b4] [c#4,g#4] [f#4,c#5] [d#4,g#4] [b3,f#4] [e4,b4] [g#4,d#5]>/6")
+    .s("triangle")
+    .attack(3.5).release(6)
+    .gain(sine.range(.06, .18).slow(13))
+    .lpf(perlin.range(400, 1000).slow(9))
+    .room(.8).size(7)
+  ,
+
+  // ---- VIBRAPHONE — the human on shift, mug in hand ----
+  n("<[0 ~ 2 ~] [~ 4 ~ 3] [5 ~ ~ 2] [~ 0 4 ~] [7 ~ 5 ~] [~ 2 ~ ~]>"
+      .add("<0 2 -2 4 1 3 0>/29"))
+    .slow(3)
+    .scale("G#3:minor:pentatonic")
+    .s("gm_vibraphone")
+    .sometimesBy(.2, x => x.add(note(12)))
+    .degradeBy(.3)
+    .gain(perlin.range(.4, .7).slow(8))
+    .attack(.02).release(2)
+    .pan(rand.range(.35, .65))
+    .delay(.35).delaytime(1).delayfeedback(.35)
+    .lpf(2000)
+    .room(.7).size(6)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- TELEMETRY — square-wave blips, the dish talking to orbit ----
+  n(irand(5)).segment(8)
+    .scale("G#5:minor:pentatonic")
+    .s("square")
+    .degradeBy(.75)
+    .gain(rand.range(.05, .14))
+    .attack(.01).sustain(.1).release(.3)
+    .pan(rand.range(.6, .85)) // the console is off to the right
+    .delay(.3).delaytime("1/4").delayfeedback(.3)
+    .lpf(rand.range(1200, 2800))
+    .room(.4).size(3)
+    .mask("<1 1 0 1 1 1 1 0 1 1 1>/11")
+  ,
+
+  // ---- DISH SERVO — the big antenna re-aiming, slow sweep, rare ----
+  note("<g#3 c#4 e3 b3>/16")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~]>/4")
+    .s("gm_pad_sweep")
+    .degradeBy(.3)
+    .attack(2.5).sustain(.4).release(5)
+    .gain(rand.range(.2, .38))
+    .pan(sine.range(.3, .7).slow(2)) // pans as it slews
+    .lpf(800)
+    .room(.9).size(8)
+    .mask("<1 1 0 1 1 1 0 1 1 1 0 1 1>/13")
+  ,
+
+  // ---- DUST — fine red grains ticking on the dome, random ----
+  n(irand(8)).segment(8)
+    .scale("G#4:minor:pentatonic")
+    .s("gm_fx_crystal")
+    .degradeBy(.88)
+    .gain(rand.range(.08, .2))
+    .pan(rand)
+    .attack(.03).release(2)
+    .delay(.4).delaytime("5/8").delayfeedback(.45)
+    .lpf(rand.range(1200, 3200))
+    .room(.9).size(8)
+)
+._scope()

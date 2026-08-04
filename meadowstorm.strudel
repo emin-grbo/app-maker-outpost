@@ -1,0 +1,95 @@
+// "meadowstorm" — hay shelter at the meadow's edge, storm still two valleys off
+// D mixolydian — sunny with that flat-7 shadow the weather keeps casting
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// (real rain arrives in YOUR mix when you want it — nothing here gets wet)
+
+setcps(.42)
+
+stack(
+
+  // ---- GROUND — D+A pedal, warm earth before rain ----
+  note("<[d2,a2] [d2,a2] [c2,g2] [d2,a2] [d2,a2] [g1,d2] [d2,a2] [a1,e2]>/6")
+    .s("sine")
+    .attack(3).sustain(1).release(6)
+    .gain(.55)
+    .lpf(perlin.range(110, 280).slow(11))
+  ,
+
+  // grass sea — wind moving through in long waves
+  note("<[d3,a3] [d3,a3] [c3,g3] [d3,a3] [d3,a3] [g2,d3] [d3,a3] [a2,e3]>/6")
+    .s("gm_pad_new_age")
+    .attack(2.5).release(5)
+    .gain(perlin.range(.2, .45).slow(9)) // gusts
+    .lpf(perlin.range(400, 1100).slow(7))
+    .room(.6).size(5)
+  ,
+
+  // ---- PADS — D mixolydian, gold with a bruise of C natural ----
+  note(`<
+    [d3,f#3,a3,c4,e4] [c3,e3,g3,b3] [g3,b3,d4,e4] [a2,c3,e3,g3]
+    [d3,f#3,a3,c4,e4] [e3,g3,b3,d4] [c3,e3,g3] [g2,b2,d3,f#3]
+  >/6`)
+    .s("gm_pad_warm")
+    .attack(2.5).release(5)
+    .jux(rev)
+    .gain(perlin.range(.2, .4).slow(7))
+    .lpf(perlin.range(450, 1200).slow(17))
+    .room(.7).size(6)
+  ,
+
+  // ---- CLARINET — woody, unhurried, watching the front come in ----
+  n("<[0 ~ 2 ~] [~ 4 ~ 3] [5 ~ ~ 2] [~ 0 4 ~] [6 ~ 5 ~] [~ 2 ~ 0]>"
+      .add("<0 2 -3 4 1 0>/29"))
+    .slow(3)
+    .scale("D4:mixolydian")
+    .s("gm_clarinet")
+    .degradeBy(.3)
+    .attack(.3).sustain(.7).release(1.8)
+    .gain(perlin.range(.3, .55).slow(8))
+    .pan(rand.range(.35, .65))
+    .lpf(1800)
+    .room(.6).size(5)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- GUITAR — nylon, answering from the shelter post ----
+  n("<[~ 0 ~ 2] [1 ~ ~ ~] [~ 3 ~ 0] [~ ~ 4 ~]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(2)
+    .scale("D3:major:pentatonic")
+    .s("gm_acoustic_guitar_nylon")
+    .degradeBy(.4)
+    .gain(.5)
+    .attack(.02).release(1.2)
+    .pan(rand.range(.3, .7))
+    .delay(.25).delaytime(.75).delayfeedback(.25)
+    .lpf(2200)
+    .room(.5).size(4)
+    .mask("<1 1 0 1 1 1 0>/7")
+  ,
+
+  // ---- THUNDER — two valleys away, pitched-down taiko, no hurry ----
+  s("gm_taiko_drum")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ x ~] [~ ~ ~ ~] [~ ~ ~ ~]>/4")
+    .degradeBy(.35)
+    .speed(rand.range(.35, .45)) // long low rumble
+    .gain(rand.range(.25, .45))
+    .pan(sine.range(.2, .5).slow(31)) // the storm slides along the ridge
+    .lpf(300)
+    .room(.9).size(9)
+    .mask("<1 0 1 1 0 1 1 1 0 1 1>/11")
+  ,
+
+  // ---- SWALLOWS — hunting low before the rain, quick high flecks ----
+  n(irand(8)).segment(8)
+    .scale("D5:major:pentatonic")
+    .s("gm_kalimba")
+    .degradeBy(.85)
+    .gain(rand.range(.12, .28))
+    .pan(rand)
+    .attack(.01).release(1)
+    .delay(.3).delaytime("3/8").delayfeedback(.3)
+    .lpf(rand.range(1800, 4000))
+    .room(.6).size(5)
+)
+._scope()

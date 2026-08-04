@@ -1,0 +1,108 @@
+// "clockmaker" — clockmaker's workshop at dusk, a hundred escapements
+// E major. three tick layers at coprime rates — the engine made audible.
+// they phase against each other forever and never line up the same way twice.
+
+setcps(.4)
+
+stack(
+
+  // ---- WORKBENCH — E+B pedal, the room's low hum ----
+  note("<[e2,b2] [e2,b2] [a1,e2] [e2,b2] [e2,b2] [c#2,g#2] [e2,b2] [b1,f#2]>/6")
+    .s("sine")
+    .attack(3.5).sustain(1).release(6)
+    .gain(.5)
+    .lpf(perlin.range(100, 250).slow(11))
+  ,
+
+  // brass warmth — lamplight on a wall of pendulums
+  note("<[e3,b3] [e3,b3] [a2,e3] [e3,b3] [e3,b3] [c#3,g#3] [e3,b3] [b2,f#3]>/6")
+    .s("gm_pad_warm")
+    .attack(3).release(5)
+    .gain(perlin.range(.2, .4).slow(13))
+    .lpf(perlin.range(300, 750).slow(9))
+    .room(.4).size(3)
+  ,
+
+  // ---- THE CLOCKS — three tick voices, coprime rates, endless phasing ----
+  // mantel clock: steady quarter tick
+  s("gm_woodblock")
+    .struct("x ~ ~ ~")
+    .degradeBy(.1)
+    .speed(.55).gain(.13).pan(.3)
+    .lpf(800).room(.3).size(2)
+    .mask("<1 1 1 1 0 1 1>/7")
+  ,
+  // wall regulator: 5 ticks over 4 cycles — drifts against the mantel
+  s("gm_woodblock")
+    .struct("x ~ ~ ~ ~".slow("5/4"))
+    .degradeBy(.1)
+    .speed(.75).gain(.1).pan(.7)
+    .lpf(1100).room(.3).size(2)
+    .mask("<1 1 0 1 1 1 1 1 0 1 1>/9")
+  ,
+  // pocket watch on the bench: quick, tiny, closest to your ear
+  s("gm_woodblock")
+    .struct("x ~ x ~ x ~ x ~".slow("7/8"))
+    .degradeBy(.2)
+    .speed(1.4).gain(.06).pan(.5)
+    .lpf(2000).room(.2).size(1)
+    .mask("<0 1 1 1 1 0 1 1 1 1 0 1 1>/13")
+  ,
+
+  // ---- PADS — E major, patient as the trade itself ----
+  note(`<
+    [e3,g#3,b3,d#4] [a2,c#3,e3,g#3] [c#3,e3,g#3,b3] [b2,d#3,f#3,a3]
+    [e3,g#3,b3,d#4] [f#3,a3,c#4,e4] [a2,c#3,e3,g#3] [g#2,b2,d#3,f#3]
+  >/6`)
+    .s("gm_pad_halo")
+    .attack(2.5).release(5)
+    .jux(rev)
+    .gain(perlin.range(.18, .36).slow(7))
+    .lpf(perlin.range(350, 900).slow(17))
+    .room(.5).size(3)
+  ,
+
+  // ---- MUSIC BOX — the one he's repairing, plays when it feels like it ----
+  n("<[0 ~ 2 ~] [~ 4 ~ 3] [5 ~ ~ 2] [~ 0 4 ~] [7 ~ 5 ~]>"
+      .add("<0 2 -2 4 1 0 3>/29"))
+    .slow(2)
+    .scale("E4:major:pentatonic")
+    .s("gm_music_box")
+    .sometimesBy(.2, x => x.add(note(12)))
+    .degradeBy(.35)
+    .gain(perlin.range(.4, .7).slow(8))
+    .attack(.01).release(1.5)
+    .pan(rand.range(.35, .65))
+    .delay(.3).delaytime(.75).delayfeedback(.3)
+    .lpf(2600)
+    .room(.5).size(3)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- CHIME — a clock somewhere strikes; they never agree on the hour ----
+  note("<e4 b4 g#4 e5>/16")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~]>/4")
+    .s("gm_tubular_bells")
+    .degradeBy(.3)
+    .speed(.8)
+    .gain(rand.range(.15, .3))
+    .attack(.01).release(6)
+    .pan(rand.range(.25, .75))
+    .lpf(1600)
+    .room(.7).size(5)
+    .mask("<1 1 0 1 1 1 0 1 1 1 0 1 1>/13")
+  ,
+
+  // ---- SPRINGS — tiny celesta glints, screws and cogs catching lamplight ----
+  n(irand(8)).segment(8)
+    .scale("E5:major:pentatonic")
+    .s("gm_celesta")
+    .degradeBy(.88)
+    .gain(rand.range(.08, .2))
+    .pan(rand)
+    .attack(.01).release(1.2)
+    .delay(.3).delaytime("3/8").delayfeedback(.35)
+    .lpf(rand.range(2000, 4500))
+    .room(.5).size(3)
+)
+._scope()

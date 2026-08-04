@@ -1,0 +1,96 @@
+// "emberden" — snowed-in safehouse, night, fire down to embers
+// E minor, low nylon guitar by the hearth, dulcimer answers
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// (fire crackle is yours to add)
+
+setcps(.38) // 1 cycle ≈ 2.6s — nowhere to be until spring
+
+stack(
+
+  // ---- HEARTH — E+B pedal, amber and low ----
+  note("<[e1,b1] [e1,b1] [c2,g2] [e1,b1] [e1,b1] [g1,d2] [e1,b1] [a1,e2]>/6")
+    .s("sine")
+    .attack(3.5).sustain(1).release(7)
+    .gain(.7)
+    .lpf(perlin.range(110, 280).slow(11))
+  ,
+
+  // organ warmth — heat coming off the stones
+  note("<[e2,b2] [e2,b2] [c3,g3] [e2,b2] [e2,b2] [g2,d3] [e2,b2] [a2,e3]>/6")
+    .s("gm_drawbar_organ")
+    .attack(3).release(6)
+    .gain(perlin.range(.15, .35).slow(13))
+    .lpf(perlin.range(250, 650).slow(9))
+    .room(.4).size(2) // small room — we're indoors
+  ,
+
+  // ---- PADS — 8 chords of E minor, blanket-warm ----
+  note(`<
+    [e3,g3,b3,d4,f#4] [c3,e3,g3,b3] [g2,d3,g3,b3] [d3,f#3,a3,e4]
+    [e3,g3,b3,d4,f#4] [a2,c3,e3,g3] [b2,d3,f#3,a3] [c3,e3,g3,b3]
+  >/6`)
+    .s("gm_pad_warm")
+    .attack(2.5).release(5)
+    .jux(rev)
+    .gain(perlin.range(.25, .5).slow(7))
+    .lpf(perlin.range(300, 800).slow(17)) // kept dark — candlelight
+    .room(.5).size(3)
+  ,
+
+  // ---- GUITAR — low fingerpicking, half asleep ----
+  n("<[0 ~ 2 ~] [~ 3 ~ 2] [4 ~ ~ 0] [~ 2 4 ~] [5 ~ 2 ~] [~ ~ 0 ~]>"
+      .add("<0 2 -2 3 1 0 4>/29"))
+    .slow(2)
+    .scale("E3:minor:pentatonic")
+    .s("gm_acoustic_guitar_nylon")
+    .sometimesBy(.15, x => x.add(note(12)))
+    .degradeBy(.3)
+    .gain(perlin.range(.5, .85).slow(8))
+    .attack(.02).release(1.2)
+    .pan(rand.range(.35, .65))
+    .delay(.2).delaytime(.75).delayfeedback(.2)
+    .lpf(2400)
+    .room(.4).size(2)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- DULCIMER — answers from the corner chair ----
+  n("<[~ 0 ~ 2] [1 ~ ~ ~] [~ ~ 3 0] [~ 4 ~ ~]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(3)
+    .scale("E4:minor:pentatonic")
+    .s("gm_dulcimer")
+    .degradeBy(.4)
+    .gain(.45)
+    .pan(rand.range(.3, .7))
+    .delay(.25).delaytime(1).delayfeedback(.25)
+    .lpf(2000)
+    .room(.4).size(2)
+    .mask("<1 1 0 1 1 1 0>/7")
+  ,
+
+  // ---- CELLO — one long thought now and then ----
+  note("<[e3] [~] [~] [g3] [~] [b2] [~] [~] [d3] [~]>/4")
+    .s("gm_cello")
+    .attack(2).sustain(.8).release(4)
+    .degradeBy(.25)
+    .gain(perlin.range(.2, .4).slow(12))
+    .pan(.45)
+    .lpf(900)
+    .room(.5).size(3)
+    .mask("<0 1 1 0 1 1 1 0 1 1 1 0 1>/13")
+  ,
+
+  // ---- EMBERS — kalimba sparks lifting off the log ----
+  n(irand(8)).segment(8)
+    .scale("E5:minor:pentatonic")
+    .s("gm_kalimba")
+    .degradeBy(.86)
+    .gain(rand.range(.12, .3))
+    .pan(rand.range(.3, .7))
+    .attack(.01).release(1.5)
+    .delay(.3).delaytime("3/8").delayfeedback(.35)
+    .lpf(rand.range(1500, 3500))
+    .room(.5).size(3)
+)
+._scope()

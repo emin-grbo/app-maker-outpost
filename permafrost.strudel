@@ -1,0 +1,108 @@
+// "permafrost" — arctic research hut, polar night, instruments logging
+// F minor, very slow. vibraphone kept dim, flute like wind under the door
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// cold but not bright — everything filtered like through triple glazing
+
+setcps(.33) // 1 cycle ≈ 3s — sun won't rise for weeks
+
+stack(
+
+  // ---- GROUND — F+C pedal, frozen forty meters down ----
+  note("<[f0,c1] [f0,c1] [db1,ab1] [f0,c1] [f0,c1] [eb1,bb1] [f0,c1] [bb0,f1]>/6")
+    .s("sine")
+    .attack(4.5).sustain(1).release(9)
+    .gain(.7)
+    .lpf(perlin.range(80, 230).slow(11))
+  ,
+
+  // bowed pad — aurora behind cloud, more guessed than seen
+  note("<[f1,c2] [f1,c2] [db2,ab2] [f1,c2] [f1,c2] [eb2,bb2] [f1,c2] [bb1,f2]>/6")
+    .s("gm_pad_bowed")
+    .attack(4).release(8)
+    .gain(perlin.range(.14, .3).slow(13))
+    .lpf(perlin.range(200, 500).slow(9))
+    .room(.8).size(8)
+  ,
+
+  // ---- PADS — 8 chords of F minor, wide and empty ----
+  note(`<
+    [f2,ab2,c3,eb3,g3] [db2,f2,ab2,c3] [bb1,db2,f2,ab2] [c2,eb2,g2,ab2]
+    [f2,ab2,c3,eb3,g3] [eb2,g2,bb2,db3] [ab2,c3,eb3,g3] [db2,f2,ab2,c3]
+  >/6`)
+    .s("gm_pad_sweep")
+    .attack(3.5).release(7)
+    .jux(rev)
+    .gain(perlin.range(.2, .4).slow(7))
+    .lpf(perlin.range(260, 620).slow(19))
+    .room(.8).size(8)
+  ,
+
+  // ---- VIBRAPHONE — readings taken, noted, filed ----
+  n("<[0 ~ 2 ~] [~ 3 ~ 2] [4 ~ ~ 0] [~ ~ 2 ~] [5 ~ 3 ~] [~ 0 ~ ~]>"
+      .add("<0 2 -2 3 1 0>/29"))
+    .slow(3)
+    .scale("F3:minor:pentatonic")
+    .s("gm_vibraphone")
+    .degradeBy(.35)
+    .gain(perlin.range(.3, .55).slow(8))
+    .attack(.03).release(2.5)
+    .pan(rand.range(.35, .6))
+    .delay(.3).delaytime(1).delayfeedback(.3)
+    .lpf(1500)
+    .room(.6).size(4)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- FLUTE — wind finding the gap under the door ----
+  n("<[~ 0 ~ 2] [3 ~ ~ ~] [~ ~ 4 2] [~ 0 ~ ~] [~ ~ 5 ~] [3 ~ ~ 0]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(4)
+    .scale("F3:minor:pentatonic")
+    .s("gm_flute")
+    .degradeBy(.45)
+    .attack(.7).sustain(.6).release(2.5)
+    .gain(perlin.range(.15, .32).slow(10))
+    .pan(sine.range(.3, .7).slow(21))
+    .lpf(1100)
+    .room(.7).size(6)
+    .mask("<1 1 0 1 1 1 1 0 1 1 1 0 1>/13")
+  ,
+
+  // ---- GENERATOR — sub pulses from the shed, steady-ish ----
+  note("<[f1] [~] [~] [c2] [~] [ab1] [~] [~] [eb2] [~] [bb1] [~]>/3")
+    .s("gm_synth_bass_1")
+    .attack(.3).sustain(.7).release(1.5)
+    .degradeBy(.3)
+    .gain(rand.range(.18, .34))
+    .pan(rand.range(.4, .6))
+    .lpf(450)
+    .room(.4).size(3)
+    .mask("<1 0 1 1 1 0 1>/7")
+  ,
+
+  // ---- RADIO CHECK — kalimba blip, base camp still there ----
+  note("<f3 c4>/8")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ x ~] [~ ~ ~ ~]>/3")
+    .s("gm_kalimba")
+    .degradeBy(.45)
+    .gain(rand.range(.08, .18))
+    .attack(.01).release(2.5)
+    .pan(sine.range(.55, .8).slow(29))
+    .lpf(1200)
+    .room(.7).size(6)
+    .mask("<1 1 0 1 1 0 1 1 1 0 1>/11")
+  ,
+
+  // ---- SNOW STATIC — vibraphone flecks, low and dim ----
+  n(irand(8)).segment(8)
+    .scale("F3:minor:pentatonic")
+    .s("gm_vibraphone")
+    .degradeBy(.9)
+    .gain(rand.range(.05, .14))
+    .pan(rand.range(.3, .7))
+    .attack(.02).release(2)
+    .delay(.3).delaytime("3/8").delayfeedback(.35)
+    .lpf(rand.range(600, 1400))
+    .room(.8).size(7)
+)
+._scope()

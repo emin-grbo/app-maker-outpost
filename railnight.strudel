@@ -1,0 +1,110 @@
+// "railnight" — sleeper car, lights low, country sliding past in the dark
+// G major, the only track in the set with a rhythm: rail joints and brushes
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+
+samples('github:eddyflux/crate')
+
+setcps(.46)
+
+stack(
+
+  // ---- ROLLING FLOOR — G+D pedal, the bogies underneath ----
+  note("<[g1,d2] [g1,d2] [c2,g2] [g1,d2] [g1,d2] [e1,b1] [g1,d2] [d2,a2]>/6")
+    .s("sine")
+    .attack(2.5).sustain(1).release(5)
+    .gain(.6)
+    .lpf(perlin.range(120, 300).slow(11))
+  ,
+
+  // ---- RAIL JOINTS — the clack, soft and irregular like real track ----
+  s("gm_woodblock")
+    .struct("x ~ [~ x] ~")
+    .degradeBy(.4)
+    .speed(rand.range(.7, .9))
+    .gain(rand.range(.1, .22))
+    .pan(.4)
+    .lpf(900)
+    .room(.3).size(2)
+    .mask("<1 1 1 0 1 1 1 1 1 0 1>/9")
+  ,
+
+  // brushes — someone's slow heartbeat in the bunk above
+  s("~ rim ~ [~ rim]").bank('crate')
+    .degradeBy(.5)
+    .gain(.12)
+    .lpf(600)
+    .room(.4).size(2)
+    .mask("<0 1 1 1 0 1 1>/7")
+  ,
+
+  // ---- PADS — G major through a train window ----
+  note(`<
+    [g2,b2,d3,f#3,a3] [c3,e3,g3,b3] [e3,g3,b3,d4] [d3,f#3,a3,c4]
+    [g2,b2,d3,f#3,a3] [a2,c3,e3,g3] [c3,e3,g3,b3] [d3,f#3,a3]
+  >/6`)
+    .s("gm_pad_warm")
+    .attack(2).release(4)
+    .jux(rev)
+    .gain(perlin.range(.2, .42).slow(7))
+    .lpf(perlin.range(350, 900).slow(17))
+    .room(.5).size(3)
+  ,
+
+  // ---- ACOUSTIC BASS — roots, half-asleep, barely walking ----
+  n("<[0 ~ ~ ~] [~ ~ 2 ~] [4 ~ ~ 0] [~ ~ ~ 2]>"
+      .add("<0 2 0 -2 1>/31"))
+    .slow(2)
+    .scale("G1:major:pentatonic")
+    .s("gm_acoustic_bass")
+    .degradeBy(.3)
+    .gain(perlin.range(.4, .65).slow(10))
+    .attack(.02).release(1)
+    .lpf(500)
+    .room(.3).size(2)
+  ,
+
+  // ---- VIBRAPHONE — the melody, watching towns go by ----
+  n("<[0 ~ 2 4] [~ 3 ~ 2] [5 ~ 4 ~] [~ 0 2 ~] [7 ~ ~ 5] [4 2 ~ ~]>"
+      .add("<0 2 4 -2 1 0 3>/29"))
+    .slow(2)
+    .scale("G3:major:pentatonic")
+    .s("gm_vibraphone")
+    .sometimesBy(.2, x => x.add(note(12)))
+    .degradeBy(.3)
+    .gain(perlin.range(.45, .75).slow(8))
+    .attack(.02).release(1.5)
+    .pan(rand.range(.3, .7))
+    .delay(.3).delaytime(.75).delayfeedback(.3)
+    .lpf(2400)
+    .room(.5).size(3)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- HARMONICA — someone quiet at the end of the car, rare ----
+  n("<[~ ~ 4 ~] [~ ~ ~ ~] [5 ~ ~ 4] [~ ~ ~ ~] [~ 2 ~ ~]>"
+      .add("<0 2 0 1>/23"))
+    .slow(4)
+    .scale("G4:major:pentatonic")
+    .s("gm_harmonica")
+    .degradeBy(.35)
+    .attack(.3).sustain(.7).release(1.5)
+    .gain(perlin.range(.2, .4).slow(12))
+    .pan(.65)
+    .lpf(1600)
+    .room(.5).size(3)
+    .mask("<0 1 1 0 1 1 1 0 1 1 1 0 1>/13")
+  ,
+
+  // ---- PASSING LIGHTS — glints sliding across the ceiling ----
+  n(irand(8)).segment(8)
+    .scale("G5:major:pentatonic")
+    .s("gm_celesta")
+    .degradeBy(.87)
+    .gain(rand.range(.1, .25))
+    .pan(sine.range(.1, .9).slow(3)) // lights travel across the car
+    .attack(.01).release(1.5)
+    .delay(.3).delaytime("3/8").delayfeedback(.35)
+    .lpf(rand.range(2000, 4500))
+    .room(.6).size(4)
+)
+._scope()

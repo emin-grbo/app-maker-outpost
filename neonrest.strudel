@@ -1,0 +1,96 @@
+// "neonrest" — high apartment over a neon city, 3am, off duty
+// C minor, all raw synth waves — the only fully electronic track in the set
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// (rain on the window and city hum are yours to add)
+
+setcps(.45)
+
+stack(
+
+  // ---- TOWER — C+G pedal, the building's own frequency ----
+  note("<[c1,g1] [c1,g1] [g#0,d#1] [c1,g1] [c1,g1] [a#0,f1] [c1,g1] [f1,c2]>/6")
+    .s("sine")
+    .attack(3).sustain(1).release(6)
+    .gain(.7)
+    .lpf(perlin.range(100, 260).slow(11))
+  ,
+
+  // ---- SAW PADS — wide, dark, filtered like light through blinds ----
+  note(`<
+    [c3,d#3,g3,a#3,d4] [g#2,c3,d#3,g3] [a#2,d3,f3,a3] [f2,g#2,c3,d#3]
+    [c3,d#3,g3,a#3,d4] [d#3,g3,a#3,d4] [g2,a#2,d3,f3] [g#2,c3,d#3,g3]
+  >/6`)
+    .s("sawtooth")
+    .attack(2.5).release(5)
+    .jux(rev)
+    .gain(perlin.range(.12, .25).slow(7))
+    .lpf(perlin.range(300, 900).slow(17))
+    .resonance(8)
+    .room(.7).size(5)
+  ,
+
+  // slow breathing — the city's glow rising and falling on the ceiling
+  note("<[c4,g4] [d#4,a#4] [f4,c5] [d#4,g4] [c4,g4] [a#3,f4] [g#3,d#4] [g3,d4]>/6")
+    .s("triangle")
+    .attack(3).release(6)
+    .gain(sine.range(.08, .22).slow(13)) // sidechain-ish swell
+    .lpf(perlin.range(500, 1200).slow(9))
+    .room(.8).size(6)
+  ,
+
+  // ---- LEAD — soft square, a thought that keeps almost resolving ----
+  n("<[0 ~ 2 ~] [~ 4 ~ 3] [5 ~ ~ 2] [~ 0 4 ~] [7 ~ 5 ~] [~ 2 ~ ~]>"
+      .add("<0 2 -2 4 1 3 0>/29"))
+    .slow(2)
+    .scale("C4:minor:pentatonic")
+    .s("square")
+    .sometimesBy(.2, x => x.add(note(12)))
+    .degradeBy(.35)
+    .gain(perlin.range(.15, .3).slow(8))
+    .attack(.05).sustain(.5).release(1.5)
+    .pan(rand.range(.3, .7))
+    .delay(.4).delaytime(.75).delayfeedback(.4)
+    .lpf(perlin.range(800, 1800).slow(12))
+    .room(.7).size(5)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- ARP — elevator lights climbing the tower opposite, comes and goes ----
+  n("0 2 4 7 4 2".add("<0 -2 2 1 0>/31"))
+    .slow(2)
+    .scale("C5:minor:pentatonic")
+    .s("triangle")
+    .degradeBy(.4)
+    .gain(.18)
+    .attack(.01).release(.5)
+    .pan(sine.range(.25, .75).slow(9))
+    .delay(.35).delaytime("3/8").delayfeedback(.45)
+    .lpf(perlin.range(1000, 2500).slow(15))
+    .room(.6).size(4)
+    .mask("<0 1 1 0 1 1 1 0 1 1 1 0 1>/13")
+  ,
+
+  // ---- SUB PULSE — distant club, floors below, felt not heard ----
+  note("c1")
+    .struct("x ~ ~ ~ x ~ ~ ~")
+    .s("sine")
+    .degradeBy(.2)
+    .gain(perlin.range(.15, .3).slow(21))
+    .attack(.01).sustain(.2).release(.3)
+    .lpf(90)
+    .mask("<0 0 1 1 1 0 1 1 0 1 1>/11") // the party stops sometimes
+  ,
+
+  // ---- SIGNS — random pentatonic neon flickers ----
+  n(irand(8)).segment(8)
+    .scale("C6:minor:pentatonic")
+    .s("sine")
+    .degradeBy(.86)
+    .gain(rand.range(.1, .25))
+    .pan(rand)
+    .attack(.01).release(1.5)
+    .delay(.4).delaytime("5/8").delayfeedback(.5)
+    .lpf(rand.range(1500, 4000))
+    .room(.8).size(6)
+)
+._scope()

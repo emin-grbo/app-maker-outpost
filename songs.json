@@ -1,0 +1,227 @@
+[
+  {
+    "file": "archive.strudel",
+    "title": "archive",
+    "blurb": "university library annex, autumn, an hour past closing"
+  },
+  {
+    "file": "beekeeper.strudel",
+    "title": "beekeeper",
+    "blurb": "hives at the meadow edge, late morning, smoker lit"
+  },
+  {
+    "file": "bunkerfog.strudel",
+    "title": "bunker fog",
+    "blurb": "coastal listening post, grey dawn, fog on dark water"
+  },
+  {
+    "file": "canopy.strudel",
+    "title": "canopy",
+    "blurb": "treehouse research platform in the rainforest crown, humid midday"
+  },
+  {
+    "file": "causeway.strudel",
+    "title": "causeway",
+    "blurb": "empty coastal highway, hour before dawn, headlights on nothing"
+  },
+  {
+    "file": "cistern.strudel",
+    "title": "cistern",
+    "blurb": "roman cistern under the city, torchlight on black water"
+  },
+  {
+    "file": "citadelfrost.strudel",
+    "title": "citadel frost",
+    "blurb": "frozen-outpost ambient, G minor over C+G pedal"
+  },
+  {
+    "file": "clockmaker.strudel",
+    "title": "clockmaker",
+    "blurb": "clockmaker's workshop at dusk, a hundred escapements"
+  },
+  {
+    "file": "cloister.strudel",
+    "title": "cloister",
+    "blurb": "stone monastery at first light, matins not yet rung"
+  },
+  {
+    "file": "coalbarge.strudel",
+    "title": "coalbarge",
+    "blurb": "river barge at night, engine slow, load heavy"
+  },
+  {
+    "file": "deepcurrent.strudel",
+    "title": "deepcurrent",
+    "blurb": "underwater research dome, lights out, current pressing past"
+  },
+  {
+    "file": "duneship.strudel",
+    "title": "duneship",
+    "blurb": "sand-crawler crossing high dunes, heat-shimmer noon"
+  },
+  {
+    "file": "emberden.strudel",
+    "title": "emberden",
+    "blurb": "snowed-in safehouse, night, fire down to embers"
+  },
+  {
+    "file": "ferryfog.strudel",
+    "title": "ferryfog",
+    "blurb": "night ferry crossing, car deck empty, fog thick as wool"
+  },
+  {
+    "file": "glasshouse.strudel",
+    "title": "glasshouse",
+    "blurb": "greenhouse just after rain, sun breaking through"
+  },
+  {
+    "file": "greatplains.strudel",
+    "title": "greatplains",
+    "blurb": "homestead porch in a sea of grass, golden hour"
+  },
+  {
+    "file": "harvesthome.strudel",
+    "title": "harvesthome",
+    "blurb": "last field cut, golden hour, wagons rolling in"
+  },
+  {
+    "file": "hollowearth.strudel",
+    "title": "hollowearth",
+    "blurb": "vast cave system, bioluminescent lake, headlamp off"
+  },
+  {
+    "file": "hotspring.strudel",
+    "title": "hotspring",
+    "blurb": "mountain onsen at night, snow falling into steam"
+  },
+  {
+    "file": "kilnhouse.strudel",
+    "title": "kilnhouse",
+    "blurb": "pottery studio, night firing, kiln at temperature"
+  },
+  {
+    "file": "kitefield.strudel",
+    "title": "kitefield",
+    "blurb": "hilltop common, steady breeze, kites up all afternoon"
+  },
+  {
+    "file": "lemongrove.strudel",
+    "title": "lemongrove",
+    "blurb": "mediterranean terrace, morning, lemons still cool"
+  },
+  {
+    "file": "lockkeeper.strudel",
+    "title": "lockkeeper",
+    "blurb": "canal lock house before dawn, mist on still water"
+  },
+  {
+    "file": "meadowstorm.strudel",
+    "title": "meadowstorm",
+    "blurb": "hay shelter at the meadow's edge, storm still two valleys off"
+  },
+  {
+    "file": "millpond.strudel",
+    "title": "millpond",
+    "blurb": "old watermill at dawn, wheel turning for nobody"
+  },
+  {
+    "file": "morningmarket.strudel",
+    "title": "morningmarket",
+    "blurb": "town square, stalls going up, first customers"
+  },
+  {
+    "file": "neonrest.strudel",
+    "title": "neonrest",
+    "blurb": "high apartment over a neon city, 3am, off duty"
+  },
+  {
+    "file": "nightwatch.strudel",
+    "title": "nightwatch",
+    "blurb": "orbital station, night shift, Earth turning below"
+  },
+  {
+    "file": "orchardnoon.strudel",
+    "title": "orchardnoon",
+    "blurb": "apple orchard, midday, ladder against a tree"
+  },
+  {
+    "file": "owlbarn.strudel",
+    "title": "owlbarn",
+    "blurb": "old barn past midnight, hay-warm dark, owl in the rafters"
+  },
+  {
+    "file": "paperlantern.strudel",
+    "title": "paperlantern",
+    "blurb": "river festival over, lanterns drifting downstream past the dock"
+  },
+  {
+    "file": "permafrost.strudel",
+    "title": "permafrost",
+    "blurb": "arctic research hut, polar night, instruments logging"
+  },
+  {
+    "file": "railnight.strudel",
+    "title": "railnight",
+    "blurb": "sleeper car, lights low, country sliding past in the dark"
+  },
+  {
+    "file": "relayzero.strudel",
+    "title": "relayzero",
+    "blurb": "relay station on a red desert planet, both moons up"
+  },
+  {
+    "file": "rivermeadow.strudel",
+    "title": "rivermeadow",
+    "blurb": "shallow river through hay meadow, afternoon, cows downstream"
+  },
+  {
+    "file": "saltwind.strudel",
+    "title": "saltwind",
+    "blurb": "coastal watchtower at dusk, tide going out"
+  },
+  {
+    "file": "skygarden.strudel",
+    "title": "skygarden",
+    "blurb": "airship conservatory gondola, above the cloud deck at sunset"
+  },
+  {
+    "file": "sleepercar.strudel",
+    "title": "sleepercar",
+    "blurb": "overnight train, lower berth, country going by unseen"
+  },
+  {
+    "file": "starfield.strudel",
+    "title": "starfield",
+    "blurb": "alpine ridge, clear night, whole sky out"
+  },
+  {
+    "file": "sunstead.strudel",
+    "title": "sunstead",
+    "blurb": "sunny safehouse in the mountains, morning, fresh"
+  },
+  {
+    "file": "templerain.strudel",
+    "title": "templerain",
+    "blurb": "mountain temple veranda, rain on the valley below"
+  },
+  {
+    "file": "tidecave.strudel",
+    "title": "tidecave",
+    "blurb": "sea cave at low tide, green light through the entrance"
+  },
+  {
+    "file": "tradewind.strudel",
+    "title": "tradewind",
+    "blurb": "small sloop, steady following wind, nothing to trim"
+  },
+  {
+    "file": "undercroft.strudel",
+    "title": "undercroft",
+    "blurb": "stone cellar beneath the abbey, lamplight, cool still air"
+  },
+  {
+    "file": "wolfhour.strudel",
+    "title": "wolfhour",
+    "blurb": "3am apartment, city finally quiet, one lamp on"
+  }
+]

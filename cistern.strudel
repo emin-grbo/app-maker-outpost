@@ -1,0 +1,108 @@
+// "cistern" — roman cistern under the city, torchlight on black water
+// E minor, columns going off into the dark, every sound comes back twice
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// big reverb, low ceiling on brightness — stone eats the highs
+
+setcps(.32) // 1 cycle ≈ 3.1s — two thousand years of patience
+
+stack(
+
+  // ---- WATERLINE — E+B pedal, black and still ----
+  note("<[e1,b1] [e1,b1] [c1,g1] [e1,b1] [e1,b1] [d1,a1] [e1,b1] [a0,e1]>/6")
+    .s("sine")
+    .attack(5).sustain(1).release(9)
+    .gain(.7)
+    .lpf(perlin.range(80, 220).slow(11))
+  ,
+
+  // choir haze — the space itself resonating
+  note("<[e2,b2] [e2,b2] [c2,g2] [e2,b2] [e2,b2] [d2,a2] [e2,b2] [a1,e2]>/6")
+    .s("gm_choir_aahs")
+    .attack(4).release(8)
+    .gain(perlin.range(.12, .26).slow(13))
+    .lpf(perlin.range(220, 520).slow(9))
+    .room(.9).size(9)
+  ,
+
+  // ---- PADS — 8 chords of E minor, column after column ----
+  note(`<
+    [e2,g2,b2,d3,f#3] [c2,e2,g2,b2] [a1,c2,e2,g2] [b1,d2,f#2,g2]
+    [e2,g2,b2,d3,f#3] [d2,f#2,a2,c3] [g2,b2,d3,f#3] [c2,e2,g2,b2]
+  >/6`)
+    .s("gm_pad_warm")
+    .attack(3.5).release(7)
+    .jux(rev)
+    .gain(perlin.range(.22, .4).slow(7))
+    .lpf(perlin.range(240, 580).slow(19))
+    .room(.9).size(9)
+  ,
+
+  // ---- DULCIMER — struck softly, listening to the echo ----
+  n("<[0 ~ 2 ~] [~ 3 ~ 2] [4 ~ ~ 0] [~ ~ 2 ~] [5 ~ 3 ~] [~ 0 ~ ~]>"
+      .add("<0 2 -2 3 1 0>/29"))
+    .slow(3)
+    .scale("E3:minor:pentatonic")
+    .s("gm_dulcimer")
+    .degradeBy(.35)
+    .gain(perlin.range(.35, .6).slow(8))
+    .attack(.01).release(2)
+    .pan(rand.range(.35, .6))
+    .delay(.4).delaytime(1.5).delayfeedback(.4) // the space answers
+    .lpf(1400)
+    .room(.9).size(9)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- PAN FLUTE — air moving between the columns ----
+  n("<[~ 0 ~ 2] [3 ~ ~ ~] [~ ~ 4 2] [~ 0 ~ ~] [~ ~ 5 ~] [3 ~ ~ 0]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(4)
+    .scale("E3:minor:pentatonic")
+    .s("gm_pan_flute")
+    .degradeBy(.45)
+    .attack(.5).sustain(.6).release(2.5)
+    .gain(perlin.range(.15, .3).slow(10))
+    .pan(sine.range(.25, .75).slow(23))
+    .lpf(1200)
+    .room(.9).size(9)
+    .mask("<1 1 0 1 1 1 1 0 1 1 1 0 1>/13")
+  ,
+
+  // ---- DRIPS — pizzicato, ceiling to waterline, forever ----
+  note("<[e2] [~] [~] [b1] [~] [g2] [~] [~] [d2] [~] [a1] [~]>/3")
+    .s("gm_pizzicato_strings")
+    .degradeBy(.4)
+    .gain(rand.range(.18, .36))
+    .attack(.01).release(1)
+    .pan(rand.range(.25, .75))
+    .lpf(800)
+    .room(.9).size(9)
+    .mask("<1 0 1 1 1 0 1>/7")
+  ,
+
+  // ---- BELL — something metal struck far off in the dark ----
+  note("<e3 b2>/8")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ x ~] [~ ~ ~ ~]>/3")
+    .s("gm_tubular_bells")
+    .degradeBy(.45)
+    .gain(rand.range(.08, .18))
+    .attack(.01).release(5)
+    .pan(sine.range(.15, .4).slow(29))
+    .lpf(750)
+    .room(.95).size(9)
+    .mask("<1 1 0 1 1 0 1 1 1 0 1>/11")
+  ,
+
+  // ---- TORCHLIGHT — marimba flecks on the water, dim ----
+  n(irand(8)).segment(8)
+    .scale("E3:minor:pentatonic")
+    .s("gm_marimba")
+    .degradeBy(.9)
+    .gain(rand.range(.05, .14))
+    .pan(rand.range(.3, .7))
+    .attack(.02).release(1.6)
+    .delay(.4).delaytime("3/8").delayfeedback(.4)
+    .lpf(rand.range(500, 1200))
+    .room(.9).size(9)
+)
+._scope()

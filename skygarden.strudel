@@ -1,0 +1,98 @@
+// "skygarden" — airship conservatory gondola, above the cloud deck at sunset
+// C lydian — the raised 4th keeps it floating, never quite landing
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+
+setcps(.4)
+
+stack(
+
+  // ---- ENVELOPE — C+G pedal, the ship's great volume overhead ----
+  note("<[c2,g2] [c2,g2] [d2,a2] [c2,g2] [c2,g2] [g1,d2] [c2,g2] [e2,b2]>/6")
+    .s("sine")
+    .attack(4).sustain(1).release(7)
+    .gain(.55)
+    .lpf(perlin.range(110, 270).slow(11))
+  ,
+
+  // lift — warm air rising through the planted deck
+  note("<[c3,g3] [c3,g3] [d3,a3] [c3,g3] [c3,g3] [g2,d3] [c3,g3] [e3,b3]>/6")
+    .s("gm_pad_halo")
+    .attack(3).release(6)
+    .gain(perlin.range(.2, .42).slow(13))
+    .lpf(perlin.range(350, 950).slow(9))
+    .room(.7).size(6)
+  ,
+
+  // ---- PADS — C lydian, F# glinting like sun on the canopy glass ----
+  note(`<
+    [c3,e3,g3,b3,d4] [d3,f#3,a3,c4] [g3,b3,d4,f#4] [e3,g3,b3,d4]
+    [c3,e3,g3,b3,d4] [a2,c3,e3,g3] [d3,f#3,a3] [b2,d3,f#3,a3]
+  >/6`)
+    .s("gm_pad_new_age")
+    .attack(2.5).release(5)
+    .jux(rev)
+    .gain(perlin.range(.2, .4).slow(7))
+    .lpf(perlin.range(500, 1400).slow(17))
+    .room(.8).size(7)
+  ,
+
+  // ---- VIBRAPHONE — walking the rows between planters ----
+  n("<[0 ~ 2 4] [~ 3 ~ 2] [6 ~ 4 ~] [~ 0 2 ~] [7 ~ ~ 4] [3 ~ 6 ~]>"
+      .add("<0 2 4 -3 1 0 3>/29"))
+    .slow(2)
+    .scale("C4:lydian")
+    .s("gm_vibraphone")
+    .sometimesBy(.2, x => x.add(note(12)))
+    .degradeBy(.3)
+    .gain(perlin.range(.45, .75).slow(8))
+    .attack(.02).release(1.8)
+    .pan(rand.range(.3, .7))
+    .delay(.3).delaytime(.75).delayfeedback(.3)
+    .lpf(2400)
+    .room(.7).size(6)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- FLUTE — up on the observation walk, rare ----
+  n("<[~ ~ 4 ~] [6 ~ ~ ~] [~ 7 ~ 4] [~ ~ ~ ~] [2 ~ ~ 6] [~ ~ ~ ~]>"
+      .add("<0 2 0 -3 1>/31"))
+    .slow(4)
+    .scale("C5:lydian")
+    .s("gm_flute")
+    .degradeBy(.35)
+    .attack(.4).sustain(.7).release(2)
+    .gain(perlin.range(.25, .45).slow(10))
+    .pan(sine.range(.35, .65).slow(19))
+    .delay(.3).delaytime(1.5).delayfeedback(.3)
+    .lpf(2200)
+    .room(.8).size(7)
+    .mask("<0 1 1 1 0 1 1 1 1 0 1 1 1>/13")
+  ,
+
+  // ---- BELL RIG — rigging bells touched by the wind, irregular ----
+  note("<g5 e5 b5 d5>/8")
+    .struct("<[~ x ~ ~] [~ ~ ~ ~] [x ~ ~ ~] [~ ~ ~ x] [~ ~ ~ ~]>/3")
+    .s("gm_tubular_bells")
+    .degradeBy(.4)
+    .speed(1.2) // small bells
+    .gain(rand.range(.1, .25))
+    .attack(.01).release(4)
+    .pan(rand.range(.2, .8))
+    .lpf(2500)
+    .room(.9).size(8)
+    .mask("<1 0 1 1 0 1 1 1 0 1 1>/11")
+  ,
+
+  // ---- CLOUD LIGHT — sunset catching the glass, random lydian glints ----
+  n(irand(9)).segment(8)
+    .scale("C6:lydian")
+    .s("gm_fx_crystal")
+    .degradeBy(.87)
+    .gain(rand.range(.1, .25))
+    .pan(rand)
+    .attack(.02).release(2)
+    .delay(.4).delaytime("5/8").delayfeedback(.45)
+    .lpf(rand.range(1800, 4500))
+    .room(.9).size(8)
+)
+._scope()

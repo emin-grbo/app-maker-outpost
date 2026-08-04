@@ -1,0 +1,108 @@
+// "wolfhour" — 3am apartment, city finally quiet, one lamp on
+// C minor, low e-piano circling a thought, clarinet from the next room
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// neutral balance — nothing above ~1800Hz gets loud
+
+setcps(.34) // 1 cycle ≈ 2.9s — the hour that isn't night or morning
+
+stack(
+
+  // ---- STREET FLOOR — C+G pedal, the building's low hum ----
+  note("<[c1,g1] [c1,g1] [ab0,eb1] [c1,g1] [c1,g1] [bb0,f1] [c1,g1] [f0,c1]>/6")
+    .s("sine")
+    .attack(4).sustain(1).release(8)
+    .gain(.7)
+    .lpf(perlin.range(90, 250).slow(11))
+  ,
+
+  // pad haze — sodium light through the blinds
+  note("<[c2,g2] [c2,g2] [ab1,eb2] [c2,g2] [c2,g2] [bb1,f2] [c2,g2] [f1,c2]>/6")
+    .s("gm_pad_halo")
+    .attack(3.5).release(7)
+    .gain(perlin.range(.15, .32).slow(13))
+    .lpf(perlin.range(200, 520).slow(9))
+    .room(.5).size(3)
+  ,
+
+  // ---- PADS — 8 chords of C minor, held low like a voice kept down ----
+  note(`<
+    [c2,eb2,g2,bb2,d3] [ab2,c3,eb3,g3] [f2,ab2,c3,eb3] [g2,bb2,d3,eb3]
+    [c2,eb2,g2,bb2,d3] [bb1,d2,f2,ab2] [eb2,g2,bb2,d3] [ab2,c3,eb3,g3]
+  >/6`)
+    .s("gm_pad_warm")
+    .attack(3).release(6)
+    .jux(rev)
+    .gain(perlin.range(.22, .42).slow(7))
+    .lpf(perlin.range(280, 680).slow(19))
+    .room(.6).size(4)
+  ,
+
+  // ---- E-PIANO — same three thoughts, rearranged all night ----
+  n("<[0 ~ 2 ~] [~ 3 ~ 2] [4 ~ ~ 0] [~ ~ 2 ~] [5 ~ 3 ~] [~ 0 ~ ~]>"
+      .add("<0 2 -2 3 1 0>/29"))
+    .slow(3)
+    .scale("C3:minor:pentatonic")
+    .s("gm_epiano1")
+    .degradeBy(.3)
+    .gain(perlin.range(.4, .65).slow(8))
+    .attack(.02).release(1.8)
+    .pan(rand.range(.35, .6))
+    .delay(.25).delaytime(1).delayfeedback(.25)
+    .lpf(1400)
+    .room(.5).size(3)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- CLARINET — someone else awake through the wall ----
+  n("<[~ 0 ~ 2] [3 ~ ~ ~] [~ ~ 4 2] [~ 0 ~ ~] [~ ~ 5 ~] [3 ~ ~ 0]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(4)
+    .scale("C3:minor:pentatonic")
+    .s("gm_clarinet")
+    .degradeBy(.4)
+    .attack(.5).sustain(.7).release(2)
+    .gain(perlin.range(.2, .4).slow(10))
+    .pan(rand.range(.55, .75)) // next room over
+    .lpf(1100)
+    .room(.5).size(4)
+    .mask("<1 1 0 1 1 1 1 0 1 1 1 0 1>/13")
+  ,
+
+  // ---- FRETLESS — the radiator settling, low and irregular ----
+  note("<[c2] [~] [~] [g1] [~] [eb2] [~] [~] [bb1] [~] [f2] [~]>/3")
+    .s("gm_fretless_bass")
+    .attack(.8).sustain(.7).release(2)
+    .degradeBy(.35)
+    .gain(rand.range(.2, .4))
+    .pan(rand.range(.35, .65))
+    .lpf(600)
+    .room(.5).size(3)
+    .mask("<1 0 1 1 1 0 1>/7")
+  ,
+
+  // ---- LAST TRAIN — one low piano note, blocks away ----
+  note("<c3 g2>/8")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ x ~] [~ ~ ~ ~]>/3")
+    .s("gm_acoustic_grand_piano")
+    .degradeBy(.4)
+    .gain(rand.range(.1, .22))
+    .attack(.01).release(4)
+    .pan(sine.range(.15, .4).slow(29))
+    .lpf(800)
+    .room(.8).size(8)
+    .mask("<1 1 0 1 1 0 1 1 1 0 1>/11")
+  ,
+
+  // ---- LAMP DUST — e-piano flecks, kept low and dim ----
+  n(irand(8)).segment(8)
+    .scale("C4:minor:pentatonic")
+    .s("gm_epiano1")
+    .degradeBy(.9)
+    .gain(rand.range(.06, .16))
+    .pan(rand.range(.3, .7))
+    .attack(.02).release(1.8)
+    .delay(.3).delaytime("3/8").delayfeedback(.3)
+    .lpf(rand.range(700, 1500))
+    .room(.6).size(5)
+)
+._scope()

@@ -1,0 +1,108 @@
+// "greatplains" — homestead porch in a sea of grass, golden hour
+// C major, dulcimer and harmonica, a fiddle that mostly just listens
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// (wind through grass is yours to add)
+
+setcps(.4)
+
+stack(
+
+  // ---- PRAIRIE — C+G pedal, land flat to the curve of the earth ----
+  note("<[c2,g2] [c2,g2] [f1,c2] [c2,g2] [c2,g2] [a1,e2] [c2,g2] [g1,d2]>/6")
+    .s("sine")
+    .attack(3.5).sustain(1).release(6)
+    .gain(.55)
+    .lpf(perlin.range(110, 270).slow(11))
+  ,
+
+  // grass swell — the wind you can watch coming from a mile off
+  note("<[c3,g3] [c3,g3] [f2,c3] [c3,g3] [c3,g3] [a2,e3] [c3,g3] [g2,d3]>/6")
+    .s("gm_pad_warm")
+    .attack(3).release(5)
+    .gain(perlin.range(.2, .45).slow(9))
+    .lpf(perlin.range(350, 950).slow(7))
+    .room(.7).size(6)
+  ,
+
+  // ---- PADS — C major, honest as a fence post ----
+  note(`<
+    [c3,e3,g3,b3,d4] [f3,a3,c4,e4] [a2,c3,e3,g3] [g3,b3,d4,e4]
+    [c3,e3,g3,b3,d4] [d3,f3,a3,c4] [f3,a3,c4] [g2,b2,d3,f3]
+  >/6`)
+    .s("gm_pad_new_age")
+    .attack(2.5).release(5)
+    .jux(rev)
+    .gain(perlin.range(.18, .38).slow(7))
+    .lpf(perlin.range(450, 1200).slow(17))
+    .room(.7).size(6)
+  ,
+
+  // ---- DULCIMER — the main voice, porch-step picking ----
+  n("<[0 ~ 2 4] [~ 3 ~ 2] [5 ~ 4 ~] [~ 0 2 ~] [7 ~ ~ 5] [4 2 ~ ~]>"
+      .add("<0 2 4 -2 1 0 3>/29"))
+    .slow(2)
+    .scale("C4:major:pentatonic")
+    .s("gm_dulcimer")
+    .sometimesBy(.2, x => x.add(note(12)))
+    .degradeBy(.3)
+    .gain(perlin.range(.45, .75).slow(8))
+    .attack(.01).release(1.2)
+    .pan(rand.range(.3, .7))
+    .delay(.25).delaytime(.75).delayfeedback(.25)
+    .lpf(2600)
+    .room(.5).size(4)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- HARMONICA — pocket-worn, between chores ----
+  n("<[~ ~ 4 ~] [~ ~ ~ ~] [5 ~ ~ 4] [~ 2 ~ ~] [~ ~ 0 ~] [~ ~ ~ ~]>"
+      .add("<0 2 0 1 -2>/23"))
+    .slow(3)
+    .scale("C4:major:pentatonic")
+    .s("gm_harmonica")
+    .degradeBy(.35)
+    .attack(.3).sustain(.7).release(1.5)
+    .gain(perlin.range(.2, .42).slow(12))
+    .pan(.6)
+    .lpf(1600)
+    .room(.5).size(4)
+    .mask("<0 1 1 0 1 1 1 0 1 1 1 0 1>/13")
+  ,
+
+  // ---- FIDDLE — long double-stops, only when the light gets good ----
+  note("<[c4,g4] [~] [~] [a3,e4] [~] [f3,c4] [~] [~] [g3,d4] [~]>/4")
+    .s("gm_fiddle")
+    .attack(1.5).sustain(.8).release(3)
+    .degradeBy(.35)
+    .gain(perlin.range(.15, .32).slow(10))
+    .pan(.4)
+    .lpf(1400)
+    .room(.6).size(5)
+    .mask("<0 1 1 0 1 1 1 0 1 1 1>/11")
+  ,
+
+  // ---- WINDMILL — the pump windmill turning, soft irregular creak ----
+  s("gm_woodblock")
+    .struct("x ~ ~ ~ ~ ~")
+    .degradeBy(.3)
+    .speed(rand.range(.4, .5))
+    .gain(rand.range(.06, .14))
+    .pan(.75)
+    .lpf(600)
+    .room(.6).size(5)
+    .mask("<1 1 1 0 1 1 1>/7")
+  ,
+
+  // ---- SEEDHEADS — grass catching last light, random glints ----
+  n(irand(8)).segment(8)
+    .scale("C5:major:pentatonic")
+    .s("gm_celesta")
+    .degradeBy(.87)
+    .gain(rand.range(.1, .22))
+    .pan(rand)
+    .attack(.01).release(1.5)
+    .delay(.3).delaytime("3/8").delayfeedback(.35)
+    .lpf(rand.range(1800, 4200))
+    .room(.7).size(6)
+)
+._scope()

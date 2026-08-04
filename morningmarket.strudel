@@ -1,0 +1,109 @@
+// "morningmarket" — town square, stalls going up, first customers
+// C major, e-piano ambling between awnings, recorder from the fountain
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+// cheerful but level — morning light, no glare
+
+setcps(.43) // 1 cycle ≈ 2.3s — the day arriving one crate at a time
+
+stack(
+
+  // ---- SQUARE — C+G pedal, cobbles warming up ----
+  note("<[c2,g2] [c2,g2] [f2,c3] [c2,g2] [c2,g2] [a2,e3] [c2,g2] [g2,d3]>/6")
+    .s("sine")
+    .attack(3).sustain(1).release(6)
+    .gain(.65)
+    .lpf(perlin.range(110, 280).slow(11))
+  ,
+
+  // choir pad — the square's own hum, talk and awning-flap
+  note("<[c3,g3] [c3,g3] [f3,c4] [c3,g3] [c3,g3] [a3,e4] [c3,g3] [g3,d4]>/6")
+    .s("gm_pad_choir")
+    .attack(2.5).release(5)
+    .gain(perlin.range(.1, .24).slow(13))
+    .lpf(perlin.range(280, 620).slow(9))
+    .room(.6).size(5)
+  ,
+
+  // ---- PADS — 8 chords of C major, stall by stall ----
+  note(`<
+    [c3,e3,g3,b3,d4] [f3,a3,c4,e4] [a2,c3,e3,g3] [g3,b3,d4,e4]
+    [c3,e3,g3,b3,d4] [d3,f3,a3,c4] [e3,g3,b3,d4] [f3,a3,c4,d4]
+  >/6`)
+    .s("gm_pad_new_age")
+    .attack(2.5).release(5)
+    .jux(rev)
+    .gain(perlin.range(.2, .4).slow(7))
+    .lpf(perlin.range(320, 780).slow(19))
+    .room(.6).size(5)
+  ,
+
+  // ---- E-PIANO — browsing, no list, no hurry ----
+  n("<[0 ~ 2 ~] [~ 4 ~ 3] [5 ~ ~ 2] [~ 0 ~ ~] [4 ~ 7 ~] [~ 2 ~ 0]>"
+      .add("<0 2 -2 3 1 0 4>/29"))
+    .slow(2)
+    .scale("C4:major:pentatonic")
+    .s("gm_epiano1")
+    .sometimesBy(.12, x => x.add(note(12)))
+    .degradeBy(.3)
+    .gain(perlin.range(.4, .65).slow(8))
+    .attack(.02).release(1.5)
+    .pan(rand.range(.35, .6))
+    .delay(.2).delaytime(.75).delayfeedback(.2)
+    .lpf(1700)
+    .room(.5).size(4)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- RECORDER — kid by the fountain, three notes they know ----
+  n("<[~ 0 ~ 2] [4 ~ ~ ~] [~ ~ 5 3] [~ 2 ~ 0] [~ ~ 4 ~] [2 ~ ~ ~]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(3)
+    .scale("C4:major:pentatonic")
+    .s("gm_recorder")
+    .degradeBy(.5)
+    .attack(.2).sustain(.6).release(1.5)
+    .gain(perlin.range(.12, .25).slow(10)) // small lungs, big square
+    .pan(rand.range(.55, .78))
+    .lpf(1400)
+    .room(.6).size(5)
+    .mask("<1 0 1 1 0 1 1 1 0 1 1 0 1>/13")
+  ,
+
+  // ---- CRATES — acoustic bass, set down stall by stall ----
+  note("<[c2] [~] [g1] [~] [a1] [~] [f1] [~] [g1] [~] [d2] [~]>/3")
+    .s("gm_acoustic_bass")
+    .degradeBy(.3)
+    .gain(rand.range(.25, .42))
+    .attack(.01).release(1)
+    .pan(rand.range(.35, .65))
+    .lpf(600)
+    .room(.5).size(4)
+    .mask("<1 0 1 1 1 0 1>/7")
+  ,
+
+  // ---- TOWN CLOCK — quarter struck, everyone already knows ----
+  note("<c4 g3>/8")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ x ~] [~ ~ ~ ~]>/3")
+    .s("gm_tubular_bells")
+    .degradeBy(.4)
+    .gain(rand.range(.08, .18))
+    .attack(.01).release(3.5)
+    .pan(sine.range(.15, .4).slow(29))
+    .lpf(950)
+    .room(.85).size(8)
+    .mask("<1 1 0 1 1 0 1 1 1 0 1>/11")
+  ,
+
+  // ---- COIN GLINT — e-piano flecks, kept mid and dim ----
+  n(irand(8)).segment(8)
+    .scale("C4:major:pentatonic")
+    .s("gm_epiano1")
+    .degradeBy(.88)
+    .gain(rand.range(.06, .16))
+    .pan(rand.range(.3, .7))
+    .attack(.02).release(1.5)
+    .delay(.25).delaytime("3/8").delayfeedback(.3)
+    .lpf(rand.range(800, 1600))
+    .room(.6).size(5)
+)
+._scope()

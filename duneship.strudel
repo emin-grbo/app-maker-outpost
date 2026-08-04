@@ -1,0 +1,95 @@
+// "duneship" — sand-crawler crossing high dunes, heat-shimmer noon
+// D dorian, sitar over a slow engine pedal, taiko like a far-off drum tower
+// same long-form engine: coprime cycles + perlin, repeat period >> mix
+
+setcps(.42)
+
+stack(
+
+  // ---- ENGINE — D+A pedal grinding low ----
+  note("<[d2,a2] [d2,a2] [c2,g2] [d2,a2] [d2,a2] [f1,c2] [d2,a2] [g1,d2]>/6")
+    .s("sine")
+    .attack(3).sustain(1).release(6)
+    .gain(.65)
+    .lpf(perlin.range(110, 280).slow(11))
+  ,
+
+  // hull resonance — hot metal singing
+  note("<[d3,a3] [d3,a3] [c3,g3] [d3,a3] [d3,a3] [f2,c3] [d3,a3] [g2,d3]>/6")
+    .s("gm_pad_bowed")
+    .attack(2.5).release(5)
+    .gain(perlin.range(.2, .45).slow(13))
+    .lpf(perlin.range(300, 800).slow(9))
+    .room(.6).size(5)
+  ,
+
+  // ---- PADS — D dorian, the major IV glints like mica ----
+  note(`<
+    [d3,f3,a3,c4,e4] [g3,b3,d4,f#4] [a2,c3,e3,g3] [c3,e3,g3,b3]
+    [d3,f3,a3,c4,e4] [e3,g3,b3,d4] [g3,b3,d4] [f3,a3,c4,e4]
+  >/6`)
+    .s("gm_pad_halo")
+    .attack(2.5).release(5)
+    .jux(rev)
+    .gain(perlin.range(.2, .4).slow(7))
+    .lpf(perlin.range(400, 1100).slow(17))
+    .room(.7).size(6)
+  ,
+
+  // ---- SITAR — heat-shimmer phrases off the dune crests ----
+  n("<[0 ~ 2 4] [~ 3 2 ~] [5 ~ 4 2] [~ 0 ~ 4] [7 ~ 5 ~] [2 4 ~ 0]>"
+      .add("<0 2 -2 4 1 0 3>/29"))
+    .slow(2)
+    .scale("D4:dorian")
+    .s("gm_sitar")
+    .sometimesBy(.2, x => x.add(note(12)))
+    .degradeBy(.3)
+    .gain(perlin.range(.45, .8).slow(8))
+    .attack(.01).release(1.2)
+    .pan(rand.range(.3, .7))
+    .delay(.3).delaytime(.75).delayfeedback(.3)
+    .lpf(2600)
+    .room(.6).size(5)
+    .mask("<1 1 1 0 1 1 1 1 0 1 1>/9")
+  ,
+
+  // ---- DULCIMER — the co-pilot answers ----
+  n("<[~ 0 ~ 2] [1 ~ ~ ~] [~ 3 ~ 0] [~ ~ 4 ~]>"
+      .add("<0 -2 2 1 0>/31"))
+    .slow(3)
+    .scale("D4:minor:pentatonic")
+    .s("gm_dulcimer")
+    .degradeBy(.4)
+    .gain(.4)
+    .pan(rand.range(.3, .7))
+    .delay(.25).delaytime(1).delayfeedback(.25)
+    .lpf(2000)
+    .room(.5).size(4)
+    .mask("<1 1 0 1 1 1 0>/7")
+  ,
+
+  // ---- DRUM TOWER — single taiko hits from somewhere across the sand ----
+  s("gm_taiko_drum")
+    .struct("<[x ~ ~ ~] [~ ~ ~ ~] [~ ~ ~ ~] [~ ~ x ~] [~ ~ ~ ~]>/3")
+    .degradeBy(.35)
+    .speed(.8)
+    .gain(rand.range(.2, .4))
+    .pan(sine.range(.3, .7).slow(23))
+    .lpf(700)
+    .room(.8).size(8)
+    .mask("<1 0 1 1 0 1 1 1 0 1 1>/11")
+  ,
+
+  // ---- MICA — random pentatonic glints in the heat ----
+  n(irand(8)).segment(8)
+    .scale("D5:minor:pentatonic")
+    .s("gm_kalimba")
+    .degradeBy(.86)
+    .gain(rand.range(.12, .28))
+    .pan(rand)
+    .attack(.01).release(1.5)
+    .delay(.35).delaytime("3/8").delayfeedback(.4)
+    .lpf(rand.range(1800, 4000))
+    .room(.7).size(6)
+)
+._scope()
