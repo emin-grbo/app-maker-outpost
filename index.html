@@ -187,6 +187,29 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.45; }
     }
+    #radio-toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24vh;
+      transform: translateX(-50%) translateY(6px);
+      background: rgba(16,11,7,0.92);
+      border: 1px solid rgba(255,196,118,0.35);
+      border-radius: 12px;
+      padding: 0.7rem 1.1rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      color: #e8ddc9;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 3;
+      max-width: 80vw;
+      text-align: center;
+    }
+    #radio-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
     .radio-vol {
       margin-top: 0.7rem;
       font-size: 0.6rem;
@@ -260,6 +283,8 @@
     <p class="radio-vol" id="radio-vol"></p>
     <p class="status" id="status">click to listen</p>
   </div>
+
+  <div id="radio-toast">I have not added this yet, pending Dave's approval :)</div>
 
   <div id="strudel-host"></div>
   <div id="debug"></div>
@@ -604,7 +629,19 @@
       }
     }
 
+    // Radio gated off until LiveATC gives the OK — the button only shows
+    // the pending-approval toast. Flip to true once Dave answers.
+    const RADIO_ENABLED = false;
+    const radioToast = document.getElementById('radio-toast');
+    let toastTimer = null;
+
     radioBtn.addEventListener('click', () => {
+      if (!RADIO_ENABLED) {
+        radioToast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => radioToast.classList.remove('show'), 3500);
+        return;
+      }
       if (radioOn) stopRadio(); else startRadio();
     });
 
