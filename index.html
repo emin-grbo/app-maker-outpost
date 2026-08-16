@@ -3,121 +3,148 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>bunker fog</title>
+  <title>app maker outpost</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
     body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #0a0a0f;
-      color: #e0e0e0;
+      background: #0a0806;
+      color: #e8ddc9;
       font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
       overflow: hidden;
     }
+    .bg {
+      position: fixed;
+      inset: 0;
+      background: url('bg.jpg') center / cover no-repeat;
+    }
+    /* soft scrim so the controls stay readable over the image */
+    .scrim {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(to top, rgba(8,5,3,0.72) 0%, rgba(8,5,3,0.25) 22%, transparent 45%);
+      pointer-events: none;
+    }
+    /* ---------------------------------------------------------------------
+       Lightbulb flicker. Positioned by JS with the same cover-math the
+       background uses, so the glow stays glued to the bulb at any viewport.
+       Two layers (tight core + wide halo) with coprime animation durations
+       so the combined flicker never visibly repeats.
+       --------------------------------------------------------------------- */
+    #bulb {
+      position: fixed;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+    #bulb .core, #bulb .halo {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+    }
+    #bulb .core {
+      width: 150px; height: 150px;
+      background: radial-gradient(circle,
+        rgba(255,238,200,0.55) 0%,
+        rgba(255,196,120,0.28) 30%,
+        rgba(255,160,70,0.10) 55%,
+        transparent 72%);
+      animation: flick-core 4.7s steps(1, end) infinite;
+    }
+    #bulb .halo {
+      width: 520px; height: 520px;
+      background: radial-gradient(circle,
+        rgba(255,190,110,0.14) 0%,
+        rgba(255,160,70,0.06) 40%,
+        transparent 70%);
+      animation: flick-halo 7.3s ease-in-out infinite;
+    }
+    @keyframes flick-core {
+      0%   { opacity: 0.85; }
+      7%   { opacity: 0.95; }
+      13%  { opacity: 0.78; }
+      21%  { opacity: 1; }
+      29%  { opacity: 0.9; }
+      34%  { opacity: 0.68; }
+      36%  { opacity: 0.98; }
+      52%  { opacity: 0.86; }
+      63%  { opacity: 1; }
+      64%  { opacity: 0.55; }
+      66%  { opacity: 0.92; }
+      78%  { opacity: 0.8; }
+      91%  { opacity: 0.96; }
+      100% { opacity: 0.85; }
+    }
+    @keyframes flick-halo {
+      0%   { opacity: 0.8; }
+      18%  { opacity: 1; }
+      41%  { opacity: 0.65; }
+      58%  { opacity: 0.9; }
+      77%  { opacity: 0.72; }
+      100% { opacity: 0.8; }
+    }
+    /* ---------------------------------------------------------------------
+       Controls — bottom center, minimal.
+       --------------------------------------------------------------------- */
     .container {
+      position: fixed;
+      left: 50%;
+      bottom: 6vh;
+      transform: translateX(-50%);
       text-align: center;
       z-index: 1;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.8);
     }
     h1 {
-      font-size: 2.4rem;
+      font-size: 1.8rem;
       font-weight: 300;
-      letter-spacing: 0.3em;
+      letter-spacing: 0.35em;
       text-transform: lowercase;
-      margin-bottom: 0.5rem;
-      color: #f0f0f0;
-      transition: opacity 0.25s ease;
+      margin-bottom: 0.4rem;
+      color: #f5ecd8;
     }
     .subtitle {
-      font-size: 0.75rem;
-      color: #666;
-      letter-spacing: 0.2em;
-      margin-bottom: 3rem;
-      min-height: 1.2em;
-      max-width: 32rem;
-      margin-left: auto;
-      margin-right: auto;
-      transition: opacity 0.25s ease;
-    }
-    .container.switching h1,
-    .container.switching .subtitle {
-      opacity: 0.25;
-    }
-    .transport {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1.75rem;
-      margin-bottom: 2rem;
-    }
-    .skip-btn {
-      width: 44px;
-      height: 44px;
-      border: none;
-      border-radius: 50%;
-      background: transparent;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.3s ease;
-    }
-    .skip-btn svg {
-      width: 20px;
-      height: 20px;
-      fill: #555;
-      transition: fill 0.3s;
-    }
-    .skip-btn:hover svg { fill: #aaa; }
-    .skip-btn:hover { background: rgba(255,255,255,0.03); }
-    .skip-btn:disabled { cursor: default; }
-    .skip-btn:disabled svg { fill: #2a2a2a; }
-    .skip-btn:disabled:hover { background: transparent; }
-    .track-count {
-      font-size: 0.65rem;
-      color: #3a3a3a;
-      letter-spacing: 0.25em;
-      margin-top: 0.75rem;
+      font-size: 0.7rem;
+      color: #b9a583;
+      letter-spacing: 0.18em;
+      margin-bottom: 1.6rem;
     }
     #play-btn {
-      width: 80px;
-      height: 80px;
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
-      border: 2px solid #444;
-      background: transparent;
+      border: 2px solid rgba(232,221,201,0.45);
+      background: rgba(10,8,6,0.35);
+      backdrop-filter: blur(3px);
       cursor: pointer;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
       transition: all 0.3s ease;
     }
     #play-btn:hover {
-      border-color: #888;
-      background: rgba(255,255,255,0.03);
+      border-color: rgba(255,214,150,0.85);
+      background: rgba(20,14,8,0.5);
     }
     #play-btn.playing {
-      border-color: #6cf;
-      box-shadow: 0 0 20px rgba(102, 204, 255, 0.15);
+      border-color: #ffc476;
+      box-shadow: 0 0 24px rgba(255,180,94,0.25);
     }
     #play-btn svg {
-      width: 24px;
-      height: 24px;
-      fill: #ccc;
+      width: 22px;
+      height: 22px;
+      fill: #e8ddc9;
       transition: fill 0.3s;
     }
-    #play-btn.playing svg {
-      fill: #6cf;
-    }
+    #play-btn.playing svg { fill: #ffc476; }
     .status {
-      font-size: 0.7rem;
-      color: #555;
+      margin-top: 1rem;
+      font-size: 0.68rem;
+      color: #8f7d61;
       letter-spacing: 0.15em;
     }
-    .status.active {
-      color: #6cf;
-    }
+    .status.active { color: #ffc476; }
     /* Strudel editor - in viewport, near-invisible (Safari kills off-screen audio) */
     #strudel-host {
       position: fixed;
@@ -142,54 +169,28 @@
       font-size: 0.65rem;
       color: #999;
       font-family: monospace;
+      display: none;
+      z-index: 2;
     }
+    #debug.visible { display: block; }
     #debug .err { color: #f66; }
     #debug .warn { color: #fc6; }
     #debug .info { color: #6cf; }
-    /* background ambient effect */
-    .bg-glow {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 600px;
-      height: 600px;
-      transform: translate(-50%, -50%);
-      background: radial-gradient(circle, rgba(102,204,255,0.03) 0%, transparent 70%);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 2s ease;
-    }
-    .bg-glow.active {
-      opacity: 1;
-    }
   </style>
 </head>
 <body>
-  <div class="bg-glow" id="bg-glow"></div>
+  <div class="bg"></div>
+  <div id="bulb"><div class="halo"></div><div class="core"></div></div>
+  <div class="scrim"></div>
   <div class="container">
-    <h1 id="song-title">bunker fog</h1>
-    <p class="subtitle" id="song-blurb">generative ambient</p>
-    <div class="transport">
-      <button id="prev-btn" class="skip-btn" aria-label="Previous track">
-        <svg viewBox="0 0 24 24">
-          <polygon points="18,5 8,12 18,19"/>
-          <rect x="5" y="5" width="2" height="14"/>
-        </svg>
-      </button>
-      <button id="play-btn" aria-label="Play">
-        <svg id="play-icon" viewBox="0 0 24 24">
-          <polygon points="6,4 20,12 6,20"/>
-        </svg>
-      </button>
-      <button id="next-btn" class="skip-btn" aria-label="Next track">
-        <svg viewBox="0 0 24 24">
-          <polygon points="6,5 16,12 6,19"/>
-          <rect x="17" y="5" width="2" height="14"/>
-        </svg>
-      </button>
-    </div>
+    <h1 id="song-title">app maker outpost</h1>
+    <p class="subtitle" id="song-blurb">beekeeper · hives at the meadow edge, late morning, smoker lit</p>
+    <button id="play-btn" aria-label="Play">
+      <svg id="play-icon" viewBox="0 0 24 24">
+        <polygon points="6,4 20,12 6,20"/>
+      </svg>
+    </button>
     <p class="status" id="status">click to listen</p>
-    <p class="track-count" id="track-count"></p>
   </div>
 
   <div id="strudel-host"></div>
@@ -258,7 +259,7 @@
 
   <script src="https://unpkg.com/@strudel/repl@latest"></script>
   <script>
-    // Debug logger
+    // Debug logger — hidden by default, press "d" to toggle the panel
     const debugEl = document.getElementById('debug');
     function log(msg, level = 'info') {
       const line = document.createElement('div');
@@ -272,73 +273,37 @@
     window.addEventListener('error', (e) => log(`UNCAUGHT: ${e.message} (${e.filename}:${e.lineno})`, 'err'));
     window.addEventListener('unhandledrejection', (e) => log(`UNHANDLED PROMISE: ${e.reason}`, 'err'));
 
+    // -----------------------------------------------------------------------
+    // Bulb glow positioning. bg.jpg is 1792x1008 rendered with cover/center;
+    // BULB is the bulb's position as a fraction of the source image. Redo the
+    // cover math on resize so the glow tracks the bulb through any crop.
+    // -----------------------------------------------------------------------
+    const IMG_W = 1792, IMG_H = 1008;
+    const BULB = { x: 0.478, y: 0.088 };
+    const bulbEl = document.getElementById('bulb');
+    function placeBulb() {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const scale = Math.max(vw / IMG_W, vh / IMG_H);
+      const w = IMG_W * scale, h = IMG_H * scale;
+      const ox = (vw - w) / 2, oy = (vh - h) / 2;
+      bulbEl.style.left = `${ox + BULB.x * w}px`;
+      bulbEl.style.top = `${oy + BULB.y * h}px`;
+    }
+    window.addEventListener('resize', placeBulb);
+    placeBulb();
+
+    const SONG = { file: 'beekeeper.strudel', title: 'beekeeper' };
+
     let isPlaying = false;
     let repl = null;
     let currentAudioCtx = null;
     const trackedContexts = new WeakSet();
-    const container = document.querySelector('.container');
     const btn = document.getElementById('play-btn');
     const icon = document.getElementById('play-icon');
     const status = document.getElementById('status');
-    const glow = document.getElementById('bg-glow');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
-    const titleEl = document.getElementById('song-title');
-    const blurbEl = document.getElementById('song-blurb');
-    const countEl = document.getElementById('track-count');
 
     const playPath = '<polygon points="6,4 20,12 6,20"/>';
     const pausePath = '<rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/>';
-
-    // -----------------------------------------------------------------------
-    // Track list. songs.json is generated from each .strudel file's header
-    // comment (title + one-line scene blurb). Falls back to bunkerfog alone so
-    // the page still plays if the manifest is missing.
-    // -----------------------------------------------------------------------
-    const FALLBACK_SONGS = [
-      { file: 'bunkerfog.strudel', title: 'bunker fog', blurb: 'generative ambient' },
-    ];
-    let songs = FALLBACK_SONGS;
-    let currentIndex = 0;
-    let loadedIndex = -1;   // which track's code the REPL currently holds
-    let switchToken = 0;    // guards against out-of-order track switches
-
-    async function loadManifest() {
-      try {
-        const res = await fetch(`songs.json?v=${Date.now()}`, { cache: 'no-store' });
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-        const list = await res.json();
-        if (!Array.isArray(list) || !list.length) throw new Error('manifest empty');
-        songs = list;
-        const start = songs.findIndex((s) => s.file === 'bunkerfog.strudel');
-        currentIndex = start === -1 ? 0 : start;
-        log(`Manifest loaded (${songs.length} tracks)`);
-      } catch (e) {
-        log(`songs.json unavailable (${e.message}) — using fallback`, 'warn');
-      }
-      renderSong();
-    }
-
-    function renderSong() {
-      const song = songs[currentIndex];
-      titleEl.textContent = song.title;
-      blurbEl.textContent = song.blurb || 'generative ambient';
-      countEl.textContent = songs.length > 1
-        ? `${String(currentIndex + 1).padStart(2, '0')} / ${String(songs.length).padStart(2, '0')}`
-        : '';
-      document.title = song.title;
-      const single = songs.length < 2;
-      prevBtn.disabled = single;
-      nextBtn.disabled = single;
-      if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
-        try {
-          navigator.mediaSession.metadata = new MediaMetadata({
-            title: song.title,
-            artist: 'generative ambient',
-          });
-        } catch (e) { /* metadata refresh is best-effort */ }
-      }
-    }
 
     async function fetchCode(file) {
       const response = await fetch(`${file}?v=${Date.now()}`, { cache: 'no-store' });
@@ -351,9 +316,8 @@
 
     async function setupRepl() {
       if (repl) return;
-      const song = songs[currentIndex];
-      log(`Fetching ${song.file}...`);
-      const code = await fetchCode(song.file);
+      log(`Fetching ${SONG.file}...`);
+      const code = await fetchCode(SONG.file);
       log(`Code loaded (${code.length} chars)`);
 
       log('Creating strudel-editor...');
@@ -371,53 +335,7 @@
         };
         check();
       });
-      loadedIndex = currentIndex;
       log('Strudel REPL ready');
-    }
-
-    // Push a track's code into an already-built REPL.
-    async function swapCode(index) {
-      const song = songs[index];
-      log(`Loading ${song.file}...`);
-      const code = await fetchCode(song.file);
-      if (typeof repl.editor.setCode === 'function') {
-        repl.editor.setCode(code);
-      } else {
-        // Older builds expose the CodeMirror doc directly
-        repl.editor.repl?.setCode?.(code);
-        repl.setAttribute('code', code);
-      }
-      loadedIndex = index;
-      log(`Code swapped (${code.length} chars)`);
-    }
-
-    async function selectSong(index) {
-      const next = (index + songs.length) % songs.length;
-      if (next === currentIndex) return;
-      currentIndex = next;
-      const token = ++switchToken;
-      renderSong();
-
-      if (!repl) return;   // nothing built yet — playAudio() will pick it up
-
-      container.classList.add('switching');
-      const wasPlaying = isPlaying;
-      if (wasPlaying) status.textContent = 'switching...';
-      try {
-        await swapCode(currentIndex);
-        if (token !== switchToken) return;   // superseded by a newer skip
-        if (wasPlaying) {
-          await repl.editor.evaluate();
-          await resumeAllAudioContexts();
-          status.textContent = 'playing';
-          log('Switched track while playing');
-        }
-      } catch (e) {
-        log(`Track switch failed: ${e.message}`, 'err');
-        if (token === switchToken) status.textContent = 'error - see debug below';
-      } finally {
-        if (token === switchToken) container.classList.remove('switching');
-      }
     }
 
     // Attach a one-time state listener so a suspended context auto-resumes while playing
@@ -447,7 +365,7 @@
         () => repl?.editor?.audioContext,
         () => document.querySelector('strudel-editor')?.editor?.repl?.scheduler?.audioContext,
       ];
-      
+
       let found = 0;
       for (const getter of methods) {
         try {
@@ -491,7 +409,6 @@
       try {
         status.textContent = 'loading...';
         await setupRepl();
-        if (loadedIndex !== currentIndex) await swapCode(currentIndex);
 
         log('Starting playback...');
         // Use start() which handles AudioContext creation + resume internally
@@ -521,21 +438,18 @@
         icon.innerHTML = pausePath;
         status.textContent = 'playing';
         status.classList.add('active');
-        glow.classList.add('active');
         log('Playback started');
 
         // Media Session — signals to Safari this tab is a media player + adds OS media controls
         if ('mediaSession' in navigator) {
           try {
             navigator.mediaSession.metadata = new MediaMetadata({
-              title: songs[currentIndex].title,
+              title: SONG.title,
               artist: 'generative ambient',
             });
             navigator.mediaSession.playbackState = 'playing';
             navigator.mediaSession.setActionHandler('play', () => playAudio());
             navigator.mediaSession.setActionHandler('pause', () => stopAudio());
-            navigator.mediaSession.setActionHandler('previoustrack', () => selectSong(currentIndex - 1));
-            navigator.mediaSession.setActionHandler('nexttrack', () => selectSong(currentIndex + 1));
             log('MediaSession registered');
           } catch (e) {
             log(`MediaSession setup failed: ${e.message}`, 'warn');
@@ -543,7 +457,7 @@
         }
       } catch (e) {
         log(`Play error: ${e.message}`, 'err');
-        status.textContent = 'error - see debug below';
+        status.textContent = 'error - press d for debug log';
       }
     }
 
@@ -555,7 +469,6 @@
       icon.innerHTML = playPath;
       status.textContent = 'click to listen';
       status.classList.remove('active');
-      glow.classList.remove('active');
       log('Stopped');
       if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'paused';
@@ -565,14 +478,11 @@
     btn.addEventListener('click', () => {
       if (isPlaying) stopAudio(); else playAudio();
     });
-    prevBtn.addEventListener('click', () => selectSong(currentIndex - 1));
-    nextBtn.addEventListener('click', () => selectSong(currentIndex + 1));
 
     document.addEventListener('keydown', (e) => {
       if (e.target.closest('#strudel-host')) return;   // don't hijack the editor
-      if (e.key === 'ArrowRight') { e.preventDefault(); selectSong(currentIndex + 1); }
-      else if (e.key === 'ArrowLeft') { e.preventDefault(); selectSong(currentIndex - 1); }
-      else if (e.key === ' ') { e.preventDefault(); isPlaying ? stopAudio() : playAudio(); }
+      if (e.key === ' ') { e.preventDefault(); isPlaying ? stopAudio() : playAudio(); }
+      else if (e.key === 'd') { debugEl.classList.toggle('visible'); }
     });
 
     // Safari suspends background tabs — resume when tab/window becomes active again
@@ -588,8 +498,6 @@
         await resumeAllAudioContexts();
       }
     });
-
-    loadManifest();
   </script>
 </body>
 </html>
