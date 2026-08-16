@@ -187,6 +187,12 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.45; }
     }
+    .radio-vol {
+      margin-top: 0.7rem;
+      font-size: 0.6rem;
+      color: #6f5f47;
+      letter-spacing: 0.2em;
+    }
     .status {
       margin-top: 1rem;
       font-size: 0.68rem;
@@ -251,6 +257,7 @@
         </svg>
       </button>
     </div>
+    <p class="radio-vol" id="radio-vol"></p>
     <p class="status" id="status">click to listen</p>
   </div>
 
@@ -546,7 +553,11 @@
     // the live edge instead of a stale buffer.
     // -----------------------------------------------------------------------
     const RADIO_URL = 'https://d.liveatc.net/kjfk_twr';
+    const RADIO_VOLUME = 0.05;
     const radioBtn = document.getElementById('radio-btn');
+    // Rendered from the constant so the page always shows the value
+    // actually in use — doubles as a deploy check.
+    document.getElementById('radio-vol').textContent = `radio vol ${RADIO_VOLUME}`;
     let radio = null;
     let radioOn = false;
 
@@ -567,7 +578,7 @@
       radioBtn.classList.add('tuning');
       radio = new Audio();
       radio.preload = 'none';
-      radio.volume = 0.05;
+      radio.volume = RADIO_VOLUME;
       radio.addEventListener('playing', () => {
         if (!radioOn) return;
         radioBtn.classList.remove('tuning');
